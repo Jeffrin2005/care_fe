@@ -29,7 +29,6 @@ interface KanbanBoardProps<T extends { id: string }> {
   }[];
   itemRender: (item: T) => ReactNode;
 }
-
 export default function KanbanBoard<T extends { id: string }>(
   props: KanbanBoardProps<T>,
 ) {
@@ -37,7 +36,7 @@ export default function KanbanBoard<T extends { id: string }>(
 
   return (
     <div className="h-[calc(100vh-114px)] md:h-[calc(100vh-50px)]">
-      <div className="flex flex-col items-end justify-between md:flex-row">
+      <div className="flex flex-col items-center justify-between md:flex-row">
         <div>{props.title}</div>
         <div className="flex items-center gap-2 py-2">
           {[0, 1].map((button, i) => (
@@ -56,8 +55,15 @@ export default function KanbanBoard<T extends { id: string }>(
           ))}
         </div>
       </div>
+
       <DragDropContext onDragEnd={props.onDragEnd}>
-        <div className="h-full overflow-scroll" ref={board}>
+        <div
+          className="h-full overflow-scroll"
+          ref={board}
+          style={{
+            overflow: "hidden",
+          }}
+        >
           <div className="flex items-stretch px-0 pb-2">
             {props.sections.map((section, i) => (
               <KanbanSection<T>
@@ -73,7 +79,6 @@ export default function KanbanBoard<T extends { id: string }>(
     </div>
   );
 }
-
 export function KanbanSection<T extends { id: string }>(
   props: Omit<KanbanBoardProps<T>, "sections" | "onDragEnd"> & {
     section: KanbanBoardProps<T>["sections"][number];
@@ -91,8 +96,6 @@ export function KanbanSection<T extends { id: string }>(
   const sectionRef = useRef<HTMLDivElement>(null);
   const defaultLimit = 14;
   const { t } = useTranslation();
-
-  // should be replaced with useInfiniteQuery when we move over to react query
 
   const fetchNextPage = async (refresh: boolean = false) => {
     if (!refresh && (fetchingNextPage || !hasMore)) return;
@@ -121,7 +124,6 @@ export function KanbanSection<T extends { id: string }>(
       const sectionElementHeight =
         sectionRef.current?.getBoundingClientRect().height;
       const scrolled = props.boardRef.current?.scrollTop;
-      // if user has scrolled 3/4th of the current items
       if (
         scrolled &&
         sectionElementHeight &&
@@ -130,7 +132,6 @@ export function KanbanSection<T extends { id: string }>(
         fetchNextPage();
       }
     };
-
     props.boardRef.current?.addEventListener("scroll", onBoardReachEnd);
     return () =>
       props.boardRef.current?.removeEventListener("scroll", onBoardReachEnd);
@@ -139,15 +140,12 @@ export function KanbanSection<T extends { id: string }>(
   useEffect(() => {
     fetchNextPage(true);
   }, [props.section]);
-
   return (
     <Droppable droppableId={section.id}>
       {(provided) => (
         <div
           ref={provided.innerRef}
-          className={
-            "relative mr-2 w-[300px] shrink-0 rounded-xl bg-secondary-200"
-          }
+          className="relative mr-2 w-[300px] shrink-0 rounded-xl bg-secondary-200"
         >
           <div className="sticky top-0 rounded-xl bg-secondary-200 pt-2">
             <div className="mx-2 flex items-center justify-between rounded-lg border border-secondary-300 bg-white p-4">
@@ -159,7 +157,10 @@ export function KanbanSection<T extends { id: string }>(
               </div>
             </div>
           </div>
-          <div ref={sectionRef}>
+          <div
+            ref={sectionRef}
+            className="h-[calc(100vh-180px)] overflow-y-auto"
+          >
             {!fetchingNextPage && totalCount === 0 && (
               <div className="flex items-center justify-center py-10 text-secondary-500">
                 {t("no_results_found")}
@@ -190,5 +191,4 @@ export function KanbanSection<T extends { id: string }>(
     </Droppable>
   );
 }
-
 export type KanbanBoardType = typeof KanbanBoard;
