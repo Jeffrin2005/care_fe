@@ -1,5 +1,6 @@
-// src/CAREUI/display/ScrollableColumn.tsx
 import React from "react";
+
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ScrollableColumnProps {
   title: string;
@@ -11,16 +12,11 @@ const ScrollableColumn: React.FC<ScrollableColumnProps> = ({
   children,
 }) => {
   return (
-    <div
-      style={{
-        height: "400px",
-        overflowY: "auto",
-        border: "1px solid #ccc",
-        margin: "10px",
-      }}
-    >
-      <h3>{title}</h3>
-      {children}
+    <div className="border border-gray-300 m-2">
+      <h3 className="text-lg font-semibold">{title}</h3>
+      <ScrollArea className="h-[400px] overflow-hidden">
+        <div className="flex flex-col">{children}</div>
+      </ScrollArea>
     </div>
   );
 };
