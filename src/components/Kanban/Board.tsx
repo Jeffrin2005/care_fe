@@ -57,13 +57,7 @@ export default function KanbanBoard<T extends { id: string }>(
       </div>
 
       <DragDropContext onDragEnd={props.onDragEnd}>
-        <div
-          className="h-full overflow-scroll"
-          ref={board}
-          style={{
-            overflow: "hidden",
-          }}
-        >
+        <div className="h-full overflow-x-auto overflow-y-hidden" ref={board}>
           <div className="flex items-stretch px-0 pb-2">
             {props.sections.map((section, i) => (
               <KanbanSection<T>
