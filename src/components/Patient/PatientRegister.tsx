@@ -1,8 +1,6 @@
 import careConfig from "@careConfig";
-import { startCase, toLower } from "lodash-es";
-import { debounce } from "lodash-es";
 import { navigate } from "raviger";
-import { useCallback, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import CareIcon from "@/CAREUI/icons/CareIcon";
@@ -56,6 +54,7 @@ import { UserModel } from "@/components/Users/models";
 
 import useAppHistory from "@/hooks/useAppHistory";
 import useAuthUser from "@/hooks/useAuthUser";
+import useDebounce from "@/hooks/useDebounce";
 
 import {
   BLOOD_GROUPS,
@@ -231,6 +230,25 @@ export const PatientRegister = (props: PatientRegisterProps) => {
 
   const headerText = !id ? "Add Details of Patient" : "Update Patient Details";
   const buttonText = !id ? "Add Patient" : "Save Details";
+
+  useEffect(() => {
+    const getQueryParams = () => {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        section: params.get("section"),
+      };
+    };
+
+    const { section } = getQueryParams();
+    if (section) {
+      setTimeout(() => {
+        const element = document.getElementById(section);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 2000);
+    }
+  }, []);
 
   const fetchDistricts = useCallback(async (id: number) => {
     if (id > 0) {
@@ -637,7 +655,7 @@ export const PatientRegister = (props: PatientRegisterProps) => {
             ? formData.last_vaccinated_date
             : null
           : null,
-      name: startCase(toLower(formData.name)),
+      name: formData.name,
       pincode: formData.pincode ? formData.pincode : undefined,
       gender: Number(formData.gender),
       nationality: formData.nationality,
@@ -757,7 +775,7 @@ export const PatientRegister = (props: PatientRegisterProps) => {
     });
   };
 
-  const duplicateCheck = debounce(async (phoneNo: string) => {
+  const duplicateCheck = useDebounce(async (phoneNo: string) => {
     if (
       phoneNo &&
       PhoneNumberValidator()(parsePhoneNumber(phoneNo) ?? "") === undefined
@@ -781,6 +799,11 @@ export const PatientRegister = (props: PatientRegisterProps) => {
           });
         }
       }
+    } else {
+      setStatusDialog({
+        show: false,
+        patientList: [],
+      });
     }
   }, 300);
 
@@ -1003,6 +1026,7 @@ export const PatientRegister = (props: PatientRegisterProps) => {
                       {...field("name")}
                       type="text"
                       label={"Name"}
+                      autoCapitalize="words"
                     />
                   </div>
                   <div>
@@ -1402,7 +1426,7 @@ export const PatientRegister = (props: PatientRegisterProps) => {
                 </div>
               </div>
               {field("nationality").value === "India" && (
-                <div className="mb-8 rounded border p-4">
+                <div id="social-profile" className="mb-8 rounded border p-4">
                   <AccordionV2
                     className="mt-2 shadow-none md:mt-0 lg:mt-0"
                     expandIcon={
@@ -1480,7 +1504,7 @@ export const PatientRegister = (props: PatientRegisterProps) => {
                   </AccordionV2>
                 </div>
               )}
-              <div className="mb-8 rounded border p-4">
+              <div id="covid-details" className="mb-8 rounded border p-4">
                 <AccordionV2
                   className="mt-2 shadow-none md:mt-0 lg:mt-0"
                   expandIcon={
@@ -1601,7 +1625,10 @@ export const PatientRegister = (props: PatientRegisterProps) => {
                   </div>
                 </AccordionV2>
               </div>
-              <div className="mb-8 overflow-visible rounded border p-4">
+              <div
+                id="medical-history"
+                className="mb-8 overflow-visible rounded border p-4"
+              >
                 <h1 className="mb-4 text-left text-xl font-bold text-purple-500">
                   Medical History
                 </h1>
@@ -1661,7 +1688,10 @@ export const PatientRegister = (props: PatientRegisterProps) => {
                   </div>
                 </div>
               </div>
-              <div className="flex w-full flex-col gap-4 rounded border bg-white p-4">
+              <div
+                id="insurance-details"
+                className="flex w-full flex-col gap-4 rounded border bg-white p-4"
+              >
                 <div className="flex w-full flex-col items-center justify-between gap-4 sm:flex-row">
                   <h1 className="text-left text-xl font-bold text-purple-500">
                     Insurance Details
