@@ -54,42 +54,36 @@ const initialState: InitialState = {
 
 const investigationReportsReducer = (state = initialState, action: any) => {
   switch (action.type) {
-    case "set_investigation_groups": {
+    case "set_investigation_groups":
       return {
         ...state,
         investigationGroups: action.payload,
       };
-    }
-    case "set_selected_group": {
+    case "set_selected_group":
       return {
         ...state,
         selectedGroup: action.payload,
       };
-    }
-    case "set_investigations": {
+    case "set_investigations":
       return {
         ...state,
         investigations: action.payload,
       };
-    }
-    case "set_selected_investigations": {
+    case "set_selected_investigations":
       return {
         ...state,
         selectedInvestigations: action.payload,
       };
-    }
-    case "set_investigation_table_data": {
+    case "set_investigation_table_data":
       return {
         ...state,
         investigationTableData: action.payload,
       };
-    }
-    case "set_loading": {
+    case "set_loading":
       return {
         ...state,
         isLoading: action.payload,
       };
-    }
     default:
       return state;
   }
@@ -113,6 +107,10 @@ const InvestigationReports = ({ id }: any) => {
     selectedGroup,
     selectedInvestigations,
   } = state as InitialState;
+
+  const clearSelectedInvestigations = () => {
+    dispatch({ type: "set_selected_investigations", payload: [] });
+  };
 
   const fetchInvestigationsData = useCallback(
     async (
@@ -185,7 +183,7 @@ const InvestigationReports = ({ id }: any) => {
       .flatten()
       .map((i) => ({
         ...i,
-        name: `${i.name} ${i.groups[0].name && " | " + i.groups[0].name} `,
+        name: `${i.name} ${i.groups[0].name && " | " + i.groups[0].name}`,
       }))
       .unionBy("external_id")
       .value();
@@ -345,23 +343,33 @@ const InvestigationReports = ({ id }: any) => {
                     })
                   }
                   optionLabel={(option) => option.name}
-                  optionValue={(option) => option}
+                  optionValue={(option) => option.external_id}
                   isLoading={isLoading.investigationLoading}
                   placeholder={t("select_investigations")}
+                  selectAll={true}
                 />
               </div>
-
-              <ButtonV2
-                onClick={() => {
-                  setSessionPage(1);
-                  handleGenerateReports(1);
-                }}
-                disabled={generateReportDisabled}
-                variant="primary"
-                className="my-2.5"
-              >
-                {t("generate_report")}
-              </ButtonV2>
+              <div className="flex space-x-2">
+                <ButtonV2
+                  onClick={() => {
+                    setSessionPage(1);
+                    handleGenerateReports(1);
+                  }}
+                  disabled={generateReportDisabled}
+                  variant="primary"
+                  className="my-2.5"
+                >
+                  {t("generate_report")}
+                </ButtonV2>
+                <ButtonV2
+                  onClick={clearSelectedInvestigations}
+                  disabled={!selectedInvestigations.length}
+                  variant="secondary"
+                  className="my-2.5"
+                >
+                  {t("clear")}
+                </ButtonV2>
+              </div>
             </>
           )}
           {isLoading.tableData && (
