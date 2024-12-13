@@ -1,7 +1,6 @@
 import { useCallback, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import ButtonV2 from "@/components/Common/ButtonV2";
 import CircularProgress from "@/components/Common/CircularProgress";
 import Loading from "@/components/Common/Loading";
 import Page from "@/components/Common/Page";
@@ -284,6 +283,9 @@ const InvestigationReports = ({ id }: any) => {
   const prevSessionDisabled = sessionPage <= 1 || isLoading.tableData;
   const nextSessionDisabled = isNextSessionDisabled || isLoading.tableData;
 
+  const buttonPrimary = "bg-green-500 text-white px-4 py-2 rounded";
+  const buttonSecondary = "bg-gray-100 text-gray-500 px-4 py-2 rounded";
+
   if (patientLoading) {
     return <Loading />;
   }
@@ -314,14 +316,13 @@ const InvestigationReports = ({ id }: any) => {
             />
           </div>
           {!isLoading.investigationLoading && (
-            <ButtonV2
+            <button
               onClick={() => fetchInvestigation()}
               disabled={getTestDisabled}
-              variant="primary"
-              className="my-2.5"
+              className={`my-2.5 ${buttonPrimary}`}
             >
               {t("get_tests")}
-            </ButtonV2>
+            </button>
           )}
           {!!isLoading.investigationLoading && (
             <CircularProgress className="text-primary-500" />
@@ -349,25 +350,23 @@ const InvestigationReports = ({ id }: any) => {
                 />
               </div>
               <div className="flex space-x-2">
-                <ButtonV2
+                <button
                   onClick={() => {
                     setSessionPage(1);
                     handleGenerateReports(1);
                   }}
                   disabled={generateReportDisabled}
-                  variant="primary"
-                  className="my-2.5"
+                  className={`my-2.5 ${buttonPrimary}`}
                 >
                   {t("generate_report")}
-                </ButtonV2>
-                <ButtonV2
+                </button>
+                <button
                   onClick={clearSelectedInvestigations}
                   disabled={!selectedInvestigations.length}
-                  variant="secondary"
-                  className="my-2.5"
+                  className={`my-2.5 ${buttonSecondary}`}
                 >
                   {t("clear")}
-                </ButtonV2>
+                </button>
               </div>
             </>
           )}
@@ -380,19 +379,19 @@ const InvestigationReports = ({ id }: any) => {
             {!!investigationTableData.length && (
               <>
                 <div className="my-2.5">
-                  <ButtonV2
+                  <button
                     onClick={() => handleSessionPage("NEXT")}
                     disabled={prevSessionDisabled}
                   >
                     {isLoading.tableData ? "Loading..." : t("next_sessions")}
-                  </ButtonV2>
-                  <ButtonV2
+                  </button>
+                  <button
                     onClick={() => handleSessionPage("PREV")}
                     disabled={nextSessionDisabled}
                     className="ml-3"
                   >
                     {isLoading.tableData ? "Loading..." : t("prev_sessions")}
-                  </ButtonV2>
+                  </button>
                 </div>
 
                 <ReportTable
@@ -406,14 +405,13 @@ const InvestigationReports = ({ id }: any) => {
                 />
 
                 {!loadMoreDisabled && (
-                  <ButtonV2
+                  <button
                     disabled={loadMoreDisabled}
                     onClick={handleLoadMore}
-                    className="my-2.5 w-full"
-                    variant="primary"
+                    className={`my-2.5 w-full${buttonPrimary}`}
                   >
                     {t("load_more")}
-                  </ButtonV2>
+                  </button>
                 )}
               </>
             )}
