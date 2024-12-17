@@ -15,8 +15,6 @@ import request from "@/Utils/request/request";
 import { QueryRoute } from "@/Utils/request/types";
 import { QueryOptions } from "@/Utils/request/useQuery";
 
-// Adjust the path if necessary
-
 interface KanbanBoardProps<T extends { id: string }> {
   title?: ReactNode;
   onDragEnd: OnDragEndResponder<string>;
