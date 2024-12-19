@@ -156,7 +156,7 @@ export function KanbanSection<T extends { id: string }>(
               </div>
             </div>
           </div>
-          <ScrollArea className="h-[calc(100vh-250px)]">
+          <ScrollArea className="h-[calc(100vh-250px)]" ref={sectionRef}>
             {!fetchingNextPage && totalCount === 0 && (
               <div className="flex items-center justify-center py-10 text-secondary-500">
                 {t("no_results_found")}
