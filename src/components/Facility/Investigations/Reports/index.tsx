@@ -1,7 +1,6 @@
 import { useCallback, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import ButtonV2 from "@/components/Common/ButtonV2";
 import CircularProgress from "@/components/Common/CircularProgress";
 import Loading from "@/components/Common/Loading";
 import Page from "@/components/Common/Page";
@@ -21,7 +20,7 @@ import * as Notification from "@/Utils/Notifications";
 import routes from "@/Utils/request/api";
 import request from "@/Utils/request/request";
 import { PaginatedResponse } from "@/Utils/request/types";
-import useTanStackQueryInstead from "@/Utils/request/useQuery";
+import useQuery from "@/Utils/request/useQuery";
 import { formatPatientAge } from "@/Utils/utils";
 
 const RESULT_PER_PAGE = 14;
@@ -53,42 +52,36 @@ const initialState: InitialState = {
 
 const investigationReportsReducer = (state = initialState, action: any) => {
   switch (action.type) {
-    case "set_investigation_groups": {
+    case "set_investigation_groups":
       return {
         ...state,
         investigationGroups: action.payload,
       };
-    }
-    case "set_selected_group": {
+    case "set_selected_group":
       return {
         ...state,
         selectedGroup: action.payload,
       };
-    }
-    case "set_investigations": {
+    case "set_investigations":
       return {
         ...state,
         investigations: action.payload,
       };
-    }
-    case "set_selected_investigations": {
+    case "set_selected_investigations":
       return {
         ...state,
         selectedInvestigations: action.payload,
       };
-    }
-    case "set_investigation_table_data": {
+    case "set_investigation_table_data":
       return {
         ...state,
         investigationTableData: action.payload,
       };
-    }
-    case "set_loading": {
+    case "set_loading":
       return {
         ...state,
         isLoading: action.payload,
       };
-    }
     default:
       return state;
   }
@@ -112,6 +105,10 @@ const InvestigationReports = ({ id }: any) => {
     selectedGroup,
     selectedInvestigations,
   } = state as InitialState;
+
+  const clearSelectedInvestigations = () => {
+    dispatch({ type: "set_selected_investigations", payload: [] });
+  };
 
   const fetchInvestigationsData = useCallback(
     async (
@@ -196,7 +193,7 @@ const InvestigationReports = ({ id }: any) => {
     });
   }, [isLoading, selectedGroup]);
 
-  useTanStackQueryInstead(routes.listInvestigationGroups, {
+  useQuery(routes.listInvestigationGroups, {
     onResponse: (res) => {
       if (res && res.data) {
         dispatch({
@@ -207,10 +204,12 @@ const InvestigationReports = ({ id }: any) => {
     },
   });
 
-  const { data: patientData, loading: patientLoading } =
-    useTanStackQueryInstead(routes.getPatient, {
+  const { data: patientData, loading: patientLoading } = useQuery(
+    routes.getPatient,
+    {
       pathParams: { id: id },
-    });
+    },
+  );
 
   const handleGroupSelect = ({ value }: FieldChangeEvent<string[]>) => {
     dispatch({ type: "set_investigations", payload: [] });
@@ -284,6 +283,9 @@ const InvestigationReports = ({ id }: any) => {
   const prevSessionDisabled = sessionPage <= 1 || isLoading.tableData;
   const nextSessionDisabled = isNextSessionDisabled || isLoading.tableData;
 
+  const buttonPrimary = "bg-green-500 text-white px-4 py-2 rounded";
+  const buttonSecondary = "bg-gray-100 text-gray-500 px-4 py-2 rounded";
+
   if (patientLoading) {
     return <Loading />;
   }
@@ -314,14 +316,13 @@ const InvestigationReports = ({ id }: any) => {
             />
           </div>
           {!isLoading.investigationLoading && (
-            <ButtonV2
+            <button
               onClick={() => fetchInvestigation()}
               disabled={getTestDisabled}
-              variant="primary"
-              className="my-2.5"
+              className={`my-2.5 ${buttonPrimary}`}
             >
               {t("get_tests")}
-            </ButtonV2>
+            </button>
           )}
           {!!isLoading.investigationLoading && (
             <CircularProgress className="text-primary-500" />
@@ -342,23 +343,31 @@ const InvestigationReports = ({ id }: any) => {
                     })
                   }
                   optionLabel={(option) => option.name}
-                  optionValue={(option) => option}
+                  optionValue={(option) => option.external_id}
                   isLoading={isLoading.investigationLoading}
                   placeholder={t("select_investigations")}
+                  selectAll={true}
                 />
               </div>
-
-              <ButtonV2
-                onClick={() => {
-                  setSessionPage(1);
-                  handleGenerateReports(1);
-                }}
-                disabled={generateReportDisabled}
-                variant="primary"
-                className="my-2.5"
-              >
-                {t("generate_report")}
-              </ButtonV2>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => {
+                    setSessionPage(1);
+                    handleGenerateReports(1);
+                  }}
+                  disabled={generateReportDisabled}
+                  className={`my-2.5 ${buttonPrimary}`}
+                >
+                  {t("generate_report")}
+                </button>
+                <button
+                  onClick={clearSelectedInvestigations}
+                  disabled={!selectedInvestigations.length}
+                  className={`my-2.5 ${buttonSecondary}`}
+                >
+                  {t("clear")}
+                </button>
+              </div>
             </>
           )}
           {isLoading.tableData && (
@@ -370,19 +379,19 @@ const InvestigationReports = ({ id }: any) => {
             {!!investigationTableData.length && (
               <>
                 <div className="my-2.5">
-                  <ButtonV2
+                  <button
                     onClick={() => handleSessionPage("NEXT")}
                     disabled={prevSessionDisabled}
                   >
                     {isLoading.tableData ? "Loading..." : t("next_sessions")}
-                  </ButtonV2>
-                  <ButtonV2
+                  </button>
+                  <button
                     onClick={() => handleSessionPage("PREV")}
                     disabled={nextSessionDisabled}
                     className="ml-3"
                   >
                     {isLoading.tableData ? "Loading..." : t("prev_sessions")}
-                  </ButtonV2>
+                  </button>
                 </div>
 
                 <ReportTable
@@ -396,14 +405,13 @@ const InvestigationReports = ({ id }: any) => {
                 />
 
                 {!loadMoreDisabled && (
-                  <ButtonV2
+                  <button
                     disabled={loadMoreDisabled}
                     onClick={handleLoadMore}
-                    className="my-2.5 w-full"
-                    variant="primary"
+                    className={`my-2.5 w-full${buttonPrimary}`}
                   >
                     {t("load_more")}
-                  </ButtonV2>
+                  </button>
                 )}
               </>
             )}

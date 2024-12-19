@@ -9,8 +9,6 @@ import { useTranslation } from "react-i18next";
 
 import CareIcon from "@/CAREUI/icons/CareIcon";
 
-import { ScrollArea } from "@/components/ui/scroll-area";
-
 import request from "@/Utils/request/request";
 import { QueryRoute } from "@/Utils/request/types";
 import { QueryOptions } from "@/Utils/request/useQuery";
@@ -59,7 +57,7 @@ export default function KanbanBoard<T extends { id: string }>(
         </div>
       </div>
       <DragDropContext onDragEnd={props.onDragEnd}>
-        <div className="h-full overflow-x-auto overflow-y-hidden" ref={board}>
+        <div className="h-full overflow-scroll" ref={board}>
           <div className="flex items-stretch px-0 pb-2">
             {props.sections.map((section, i) => (
               <KanbanSection<T>
@@ -94,6 +92,8 @@ export function KanbanSection<T extends { id: string }>(
   const defaultLimit = 14;
   const { t } = useTranslation();
 
+  // should be replaced with useInfiniteQuery when we move over to react query
+
   const fetchNextPage = async (refresh: boolean = false) => {
     if (!refresh && (fetchingNextPage || !hasMore)) return;
     if (refresh) setPages([]);
@@ -121,6 +121,7 @@ export function KanbanSection<T extends { id: string }>(
       const sectionElementHeight =
         sectionRef.current?.getBoundingClientRect().height;
       const scrolled = props.boardRef.current?.scrollTop;
+      // if user has scrolled 3/4th of the current items
       if (
         scrolled &&
         sectionElementHeight &&
@@ -144,7 +145,9 @@ export function KanbanSection<T extends { id: string }>(
       {(provided) => (
         <div
           ref={provided.innerRef}
-          className="relative mr-2 w-[300px] shrink-0 rounded-xl bg-secondary-200"
+          className={
+            "relative mr-2 w-[300px] shrink-0 rounded-xl bg-secondary-200"
+          }
         >
           <div className="sticky top-0 rounded-xl bg-secondary-200 pt-2">
             <div className="mx-2 flex items-center justify-between rounded-lg border border-secondary-300 bg-white p-4">
@@ -156,7 +159,7 @@ export function KanbanSection<T extends { id: string }>(
               </div>
             </div>
           </div>
-          <ScrollArea className="h-[calc(100vh-250px)]" ref={sectionRef}>
+          <div ref={sectionRef}>
             {!fetchingNextPage && totalCount === 0 && (
               <div className="flex items-center justify-center py-10 text-secondary-500">
                 {t("no_results_found")}
@@ -181,7 +184,7 @@ export function KanbanSection<T extends { id: string }>(
             {fetchingNextPage && (
               <div className="mt-2 h-[300px] w-[284px] animate-pulse rounded-lg bg-secondary-300" />
             )}
-          </ScrollArea>
+          </div>
         </div>
       )}
     </Droppable>
