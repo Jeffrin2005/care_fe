@@ -4,7 +4,8 @@ import {
   Droppable,
   OnDragEndResponder,
 } from "@hello-pangea/dnd";
-import { ReactNode, RefObject, useEffect, useRef, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { ReactNode, RefObject, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import CareIcon from "@/CAREUI/icons/CareIcon";
@@ -74,6 +75,12 @@ export default function KanbanBoard<T extends { id: string }>(
   );
 }
 
+interface QueryResponse<T> {
+  results: T[];
+  next: string | null;
+  count: number;
+}
+
 export function KanbanSection<T extends { id: string }>(
   props: Omit<KanbanBoardProps<T>, "sections" | "onDragEnd"> & {
     section: KanbanBoardProps<T>["sections"][number];
@@ -81,63 +88,60 @@ export function KanbanSection<T extends { id: string }>(
   },
 ) {
   const { section } = props;
-  const [offset, setOffset] = useState(0);
-  const [pages, setPages] = useState<T[][]>([]);
-  const [fetchingNextPage, setFetchingNextPage] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [totalCount, setTotalCount] = useState<number>();
-
-  const options = section.fetchOptions(section.id);
   const sectionRef = useRef<HTMLDivElement>(null);
   const defaultLimit = 14;
   const { t } = useTranslation();
 
-  const fetchNextPage = async (refresh: boolean = false) => {
-    if (!refresh && (fetchingNextPage || !hasMore)) return;
-    if (refresh) {
-      setPages([]);
-      setOffset(0);
-      setHasMore(true);
-    }
-    const offsetToUse = refresh ? 0 : offset;
-    setFetchingNextPage(true);
-
+  const fetchPage = async ({ pageParam = 0 }) => {
+    const options = section.fetchOptions(section.id);
     try {
-      const res = await request(options.route, {
+      const response = await request(options.route, {
         ...options.options,
         query: {
           ...options.options?.query,
-          offset: offsetToUse,
+          offset: pageParam,
           limit: defaultLimit,
         },
       });
-      const newPages = refresh ? [] : [...pages];
-      const page = Math.floor(offsetToUse / defaultLimit);
-      if (res.error) {
-        console.error("Error fetching data:", res.error);
-        return;
+
+      if (response.error) {
+        throw new Error("Error fetching data");
       }
-      newPages[page] = (res.data as any).results;
-      setPages(newPages);
-      setHasMore(!!(res.data as any)?.next);
-      setTotalCount((res.data as any)?.count);
-      setOffset(offsetToUse + defaultLimit);
+
+      return response.data as QueryResponse<T>;
     } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setFetchingNextPage(false);
+      console.error("Error fetching section data:", error);
+      return { results: [], next: null, count: 0 };
     }
   };
 
-  const items = pages.flat();
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    refetch,
+  } = useInfiniteQuery({
+    queryKey: [section.id],
+    queryFn: fetchPage,
+    getNextPageParam: (lastPage, pages) => {
+      if (!lastPage.next) return undefined;
+      return pages.length * defaultLimit;
+    },
+    initialPageParam: 0,
+  });
+
+  const items = data?.pages?.flatMap((page) => page.results || []) ?? [];
+  const totalCount = data?.pages[0]?.count ?? 0;
 
   useEffect(() => {
-    fetchNextPage(true);
-  }, [props.section]);
+    refetch();
+  }, [section.id, refetch]);
 
   return (
     <Droppable droppableId={section.id}>
-      {(provided) => (
+      {(provided, _snapshot) => (
         <div
           ref={provided.innerRef}
           className="relative mr-2 w-[300px] shrink-0 rounded-xl bg-secondary-200"
@@ -147,7 +151,7 @@ export function KanbanSection<T extends { id: string }>(
               <div>{section.title}</div>
               <div>
                 <span className="ml-2 rounded-lg bg-secondary-300 px-2">
-                  {typeof totalCount === "undefined" ? "..." : totalCount}
+                  {isLoading ? "..." : totalCount}
                 </span>
               </div>
             </div>
@@ -161,32 +165,33 @@ export function KanbanSection<T extends { id: string }>(
                 target.scrollTop + target.clientHeight >=
                 target.scrollHeight - 100
               ) {
-                fetchNextPage();
+                if (hasNextPage && !isFetchingNextPage) {
+                  fetchNextPage();
+                }
               }
             }}
           >
-            {!fetchingNextPage && totalCount === 0 && (
+            {!isLoading && items.length === 0 && (
               <div className="flex items-center justify-center py-10 text-secondary-500">
                 {t("no_results_found")}
               </div>
             )}
-            {items
-              .filter((item) => item)
-              .map((item, i) => (
-                <Draggable draggableId={item.id} key={i} index={i}>
-                  {(provided) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      className="mx-2 mt-2 w-[284px] rounded-lg border border-secondary-300 bg-white"
-                    >
-                      {props.itemRender(item)}
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-            {fetchingNextPage && (
+            {items.map((item, index) => (
+              <Draggable key={item.id} draggableId={item.id} index={index}>
+                {(provided, _snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    className="mx-2 mt-2 w-[284px] rounded-lg border border-secondary-300 bg-white"
+                  >
+                    {props.itemRender(item)}
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+            {isFetchingNextPage && (
               <div className="mt-2 h-[300px] w-[284px] animate-pulse rounded-lg bg-secondary-300" />
             )}
           </div>
