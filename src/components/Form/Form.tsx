@@ -1,3 +1,4 @@
+import isEqual from "lodash/isEqual";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Cancel, Submit } from "@/components/Common/ButtonV2";
@@ -47,6 +48,7 @@ const Form = <T extends FormDetails>({
   const [isLoading, setIsLoading] = useState(!!asyncGetDefaults);
   const [state, dispatch] = useAutoSaveReducer<T>(formReducer, initial);
   const formVals = useRef(props.defaults);
+  const [isFormModified, setIsFormModified] = useState(false); // Add this line
 
   useEffect(() => {
     if (!asyncGetDefaults) return;
@@ -82,12 +84,14 @@ const Form = <T extends FormDetails>({
       });
     } else if (props.resetFormValsOnSubmit) {
       dispatch({ type: "set_form", form: formVals.current });
+      setIsFormModified(false);
     }
   };
 
   const handleCancel = () => {
     if (props.resetFormValsOnCancel) {
       dispatch({ type: "set_form", form: formVals.current });
+      setIsFormModified(false);
     }
     props.onCancel?.();
   };
@@ -123,13 +127,19 @@ const Form = <T extends FormDetails>({
             return {
               name,
               id: name,
-              onChange: ({ name, value }: FieldChangeEvent<T[keyof T]>) =>
+              onChange: ({ name, value }: FieldChangeEvent<T[keyof T]>) => {
+                const newForm = {
+                  ...state.form,
+                  [name]: value,
+                };
+                setIsFormModified(!isEqual(newForm, formVals.current));
                 dispatch({
                   type: "set_field",
                   name,
                   value,
                   error: validate?.(value),
-                }),
+                });
+              },
               value: state.form[name],
               error: state.errors[name],
               disabled,
@@ -149,7 +159,7 @@ const Form = <T extends FormDetails>({
             <Submit
               data-testid="submit-button"
               type="submit"
-              disabled={disabled}
+              disabled={disabled || !isFormModified}
               label={props.submitLabel ?? "Submit"}
             />
           </div>
