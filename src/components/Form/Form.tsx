@@ -49,6 +49,8 @@ const Form = <T extends FormDetails>({
   const [isLoading, setIsLoading] = useState(!!asyncGetDefaults);
   const [state, dispatch] = useAutoSaveReducer<T>(formReducer, initial);
   const formVals = useRef(props.defaults);
+  // is_form modify
+
   const [isFormModified, setIsFormModified] = useState(false);
 
   useEffect(() => {
