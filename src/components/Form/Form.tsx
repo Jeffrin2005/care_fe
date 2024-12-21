@@ -1,5 +1,4 @@
 import isEqual from "lodash/isEqual";
-//loadish
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Cancel, Submit } from "@/components/Common/ButtonV2";
@@ -49,7 +48,6 @@ const Form = <T extends FormDetails>({
   const [isLoading, setIsLoading] = useState(!!asyncGetDefaults);
   const [state, dispatch] = useAutoSaveReducer<T>(formReducer, initial);
   const formVals = useRef(props.defaults);
-  // is_form modify
 
   const [isFormModified, setIsFormModified] = useState(false);
 
