@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 
 import CareIcon from "@/CAREUI/icons/CareIcon";
 
-import request from "@/Utils/request/request";
+import { callApi } from "@/Utils/request/query";
 import { QueryRoute } from "@/Utils/request/types";
 import { QueryOptions } from "@/Utils/request/useQuery";
 
@@ -95,20 +95,15 @@ export function KanbanSection<T extends { id: string }>(
   const fetchPage = async ({ pageParam = 0 }) => {
     const options = section.fetchOptions(section.id);
     try {
-      const response = await request(options.route, {
+      const data = await callApi(options.route, {
         ...options.options,
-        query: {
+        queryParams: {
           ...options.options?.query,
           offset: pageParam,
           limit: defaultLimit,
         },
       });
-
-      if (response.error) {
-        throw new Error("Error fetching data");
-      }
-
-      return response.data as QueryResponse<T>;
+      return data as QueryResponse<T>;
     } catch (error) {
       console.error("Error fetching section data:", error);
       return { results: [], next: null, count: 0 };
