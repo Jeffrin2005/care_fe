@@ -1,4 +1,5 @@
 import isEqual from "lodash/isEqual";
+//loadish
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Cancel, Submit } from "@/components/Common/ButtonV2";
@@ -62,13 +63,11 @@ const Form = <T extends FormDetails>({
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     event.stopPropagation();
-
     if (validate) {
       const errors = omitBy(validate(state.form), isEmpty) as FormErrors<T>;
-
       if (Object.keys(errors).length) {
         dispatch({ type: "set_errors", errors });
-
+        //
         if (errors.$all) {
           Notification.Error({ msg: errors.$all });
         }
