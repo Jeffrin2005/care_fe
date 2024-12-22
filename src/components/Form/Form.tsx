@@ -1,7 +1,7 @@
-import isEqual from "lodash/isEqual";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Cancel, Submit } from "@/components/Common/ButtonV2";
+import ButtonV2 from "@/components/Common/ButtonV2";
 import { FieldValidator } from "@/components/Form/FieldValidators";
 import {
   FormContextValue,
@@ -44,12 +44,12 @@ const Form = <T extends FormDetails>({
   hideCancelButton = false,
   ...props
 }: Props<T>) => {
+  const { t } = useTranslation();
   const initial = { form: props.defaults, errors: {} };
   const [isLoading, setIsLoading] = useState(!!asyncGetDefaults);
   const [state, dispatch] = useAutoSaveReducer<T>(formReducer, initial);
   const formVals = useRef(props.defaults);
-
-  const [isFormModified, setIsFormModified] = useState(false);
+  const [isModified, setIsModified] = useState(false);
 
   useEffect(() => {
     if (!asyncGetDefaults) return;
@@ -58,15 +58,24 @@ const Form = <T extends FormDetails>({
       dispatch({ type: "set_form", form });
       setIsLoading(false);
     });
-  }, [asyncGetDefaults]);
+  }, [asyncGetDefaults, dispatch]);
+
+  useEffect(() => {
+    const hasChanges =
+      JSON.stringify(state.form) !== JSON.stringify(formVals.current);
+    setIsModified(hasChanges);
+  }, [state.form]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     event.stopPropagation();
+
     if (validate) {
       const errors = omitBy(validate(state.form), isEmpty) as FormErrors<T>;
+
       if (Object.keys(errors).length) {
         dispatch({ type: "set_errors", errors });
+
         if (errors.$all) {
           Notification.Error({ msg: errors.$all });
         }
@@ -82,14 +91,13 @@ const Form = <T extends FormDetails>({
       });
     } else if (props.resetFormValsOnSubmit) {
       dispatch({ type: "set_form", form: formVals.current });
-      setIsFormModified(false);
     }
   };
 
   const handleCancel = () => {
     if (props.resetFormValsOnCancel) {
       dispatch({ type: "set_form", form: formVals.current });
-      setIsFormModified(false);
+      setIsModified(false);
     }
     props.onCancel?.();
   };
@@ -125,19 +133,13 @@ const Form = <T extends FormDetails>({
             return {
               name,
               id: name,
-              onChange: ({ name, value }: FieldChangeEvent<T[keyof T]>) => {
-                const newForm = {
-                  ...state.form,
-                  [name]: value,
-                };
-                setIsFormModified(!isEqual(newForm, formVals.current));
+              onChange: ({ name, value }: FieldChangeEvent<T[keyof T]>) =>
                 dispatch({
                   type: "set_field",
                   name,
                   value,
                   error: validate?.(value),
-                });
-              },
+                }),
               value: state.form[name],
               error: state.errors[name],
               disabled,
@@ -149,17 +151,22 @@ const Form = <T extends FormDetails>({
           </div>
           <div className="flex flex-col-reverse justify-end gap-3 sm:flex-row">
             {!hideCancelButton && (
-              <Cancel
+              <ButtonV2
+                variant="secondary"
                 onClick={handleCancel}
-                label={props.cancelLabel ?? "Cancel"}
-              />
+                disabled={disabled}
+              >
+                {props.cancelLabel ?? t("common:cancel")}
+              </ButtonV2>
             )}
-            <Submit
-              data-testid="submit-button"
+            <ButtonV2
+              variant="primary"
               type="submit"
-              disabled={disabled || !isFormModified}
-              label={props.submitLabel ?? "Submit"}
-            />
+              disabled={disabled || !isModified}
+              data-testid="submit-button"
+            >
+              {props.submitLabel ?? t("common:submit")}
+            </ButtonV2>
           </div>
         </Provider>
       </DraftSection>
