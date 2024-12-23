@@ -153,7 +153,7 @@ export function KanbanSection<T extends { id: string }>(
           </div>
           <div
             ref={sectionRef}
-            className="h-[calc(100vh-200px)] overflow-y-auto scrollbar-hide"
+            className="h-[calc(100vh-200px)] overflow-y-auto overflow-x-hidden"
             onScroll={(e) => {
               const target = e.target as HTMLDivElement;
               if (
