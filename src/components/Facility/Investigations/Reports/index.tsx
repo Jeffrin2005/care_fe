@@ -284,9 +284,10 @@ const InvestigationReports = ({ id }: any) => {
   const nextSessionDisabled = isNextSessionDisabled || isLoading.tableData;
 
   const buttonPrimary =
-    "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50";
+    "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none ";
   const buttonSecondary =
-    "bg-gray-100 text-gray-500 px-4 py-2 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50";
+    "bg-gray-100 text-gray-500 px-4 py-2 rounded hover:bg-gray-200 focus:outline-none ";
+
   if (patientLoading) {
     return <Loading />;
   }
