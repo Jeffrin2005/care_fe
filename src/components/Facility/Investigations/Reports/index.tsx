@@ -283,11 +283,6 @@ const InvestigationReports = ({ id }: any) => {
   const prevSessionDisabled = sessionPage <= 1 || isLoading.tableData;
   const nextSessionDisabled = isNextSessionDisabled || isLoading.tableData;
 
-  const buttonPrimary =
-    "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none ";
-  const buttonSecondary =
-    "bg-gray-100 text-gray-500 px-4 py-2 rounded hover:bg-gray-200 focus:outline-none ";
-
   if (patientLoading) {
     return <Loading />;
   }
@@ -321,7 +316,7 @@ const InvestigationReports = ({ id }: any) => {
             <Button
               onClick={() => fetchInvestigation()}
               disabled={getTestDisabled}
-              className={`my-2.5 ${buttonPrimary}`}
+              variant="primary"
             >
               {t("get_tests")}
             </Button>
@@ -358,14 +353,14 @@ const InvestigationReports = ({ id }: any) => {
                     handleGenerateReports(1);
                   }}
                   disabled={generateReportDisabled}
-                  className={`my-2.5 ${buttonPrimary}`}
+                  variant="primary"
                 >
                   {t("generate_report")}
                 </Button>
                 <Button
                   onClick={clearSelectedInvestigations}
                   disabled={!selectedInvestigations.length}
-                  className={`my-2.5 ${buttonSecondary}`}
+                  variant="secondary"
                 >
                   {t("clear")}
                 </Button>
@@ -410,7 +405,7 @@ const InvestigationReports = ({ id }: any) => {
                   <Button
                     disabled={loadMoreDisabled}
                     onClick={handleLoadMore}
-                    className={`my-2.5 w-full${buttonPrimary}`}
+                    variant="primary"
                   >
                     {t("load_more")}
                   </Button>
