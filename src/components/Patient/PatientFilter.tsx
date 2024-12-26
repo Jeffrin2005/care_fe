@@ -269,8 +269,14 @@ export default function PatientFilter(props: any) {
 
   const handleDateRangeChange = (event: FieldChangeEvent<DateRange>) => {
     const filterData: any = { ...filterState };
-    filterData[`${event.name}_after`] = event.value.start?.toString();
-    filterData[`${event.name}_before`] = event.value.end?.toString();
+    const startDate = event.value.start;
+    let endDate = event.value.end;
+    if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
+      endDate = startDate;
+    }
+
+    filterData[`${event.name}_after`] = startDate?.toString();
+    filterData[`${event.name}_before`] = endDate?.toString();
     setFilterState(filterData);
   };
 
