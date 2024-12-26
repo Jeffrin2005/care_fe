@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 
 import Card from "@/CAREUI/display/Card";
 
+import { Button } from "@/components/ui/button";
+
 import { Submit } from "@/components/Common/ButtonV2";
 import Loading from "@/components/Common/Loading";
 import Page from "@/components/Common/Page";
@@ -36,10 +38,6 @@ export interface InvestigationType {
   choices?: string;
   ideal_value?: string;
   groups: InvestigationGroup[];
-}
-type SearchItem = InvestigationGroup | InvestigationType;
-function isInvestigation(e: SearchItem): e is InvestigationType {
-  return (e as InvestigationType).groups !== undefined;
 }
 
 const testFormReducer = (state = initialState, action: any) => {
@@ -93,7 +91,7 @@ const Investigation = (props: {
             name: investigation.split(" -- ")[0],
             groups: investigation
               .split(" -- ")[1]
-              .split(",")
+              .split(", ")
               .map((group) => group.split("( ")[1].split(" )")[0]),
           };
     },
@@ -106,8 +104,6 @@ const Investigation = (props: {
   >([]);
   const [saving, setSaving] = useState(false);
   const [session, setSession] = useState("");
-  const [selectedItems, selectItems] = useState<SearchItem[]>([]);
-
   const { data: investigations, loading: listInvestigationDataLoading } =
     useTanStackQueryInstead(routes.listInvestigations, {});
 
@@ -150,7 +146,6 @@ const Investigation = (props: {
           const investigation = investigations.results.find(
             (investigation) => investigation.name === inv.name,
           );
-          // check if investigation contains all groups
           if (
             inv.groups.every((group: string) =>
               investigation?.groups.find(
@@ -173,7 +168,6 @@ const Investigation = (props: {
           .flat(),
       ];
       setSelectedGroup(Array.from(new Set(allGroups)));
-      selectItems([...prefilledGroups, ...prefilledInvestigations]);
     }
   }, [investigations, investigationGroups]);
 
@@ -262,39 +256,58 @@ const Investigation = (props: {
         [patientId]: { name: patientData?.name },
       }}
     >
-      <div className="flex flex-col gap-2">
-        <AutocompleteMultiSelectFormField
-          className="mt-5"
-          name="investigations"
-          placeholder={t("search_investigation_placeholder")}
-          options={[
-            ...(investigationGroups?.results || []),
-            ...(investigations?.results || []),
-          ]}
-          value={selectedItems}
-          optionLabel={(option) => option.name}
-          optionValue={(option) => option}
-          onChange={({ value }) => {
-            selectItems(value);
-            setSelectedInvestigations(value.filter(isInvestigation));
-            setSelectedGroup(
-              [
-                ...value
-                  .filter((e) => !isInvestigation(e))
-                  .map((e) => e.external_id),
-                ...value.reduce<string[]>(
-                  (acc, option) =>
-                    acc.concat(
-                      isInvestigation(option)
-                        ? option.groups.map((e) => e.external_id)
-                        : [],
-                    ),
-                  [],
-                ),
-              ].filter((v, i, a) => a.indexOf(v) == i),
-            );
-          }}
-        />
+      <div className="flex flex-col gap-4">
+        <div className="mt-5">
+          <AutocompleteMultiSelectFormField
+            id="investigation-select"
+            name="investigation-select"
+            label={t("select_investigations")}
+            options={investigations?.results || []}
+            value={selectedInvestigations.map((inv) => inv.external_id)}
+            onChange={({ value }) => {
+              const selectedValues = Array.isArray(value) ? value : [value];
+              const newSelectedInvestigations = selectedValues
+                .map((val) =>
+                  investigations?.results.find(
+                    (inv) => inv.external_id === val,
+                  ),
+                )
+                .filter((inv): inv is InvestigationType => inv !== undefined);
+
+              setSelectedInvestigations(newSelectedInvestigations);
+
+              const groupIds = newSelectedInvestigations.reduce<string[]>(
+                (acc, inv) => acc.concat(inv.groups.map((g) => g.external_id)),
+                [],
+              );
+              setSelectedGroup(Array.from(new Set(groupIds)));
+            }}
+            optionLabel={(option) => option.name}
+            optionValue={(option) => option.external_id}
+            placeholder={t("select_investigations")}
+            selectAll
+            className="w-full"
+          />
+        </div>
+
+        <div className="flex gap-2">
+          <Submit
+            onClick={handleSubmit}
+            disabled={saving || !selectedInvestigations.length}
+            label={t("save_investigation")}
+          />
+          {selectedInvestigations.length > 0 && (
+            <Button
+              onClick={() => {
+                setSelectedInvestigations([]);
+                setSelectedGroup([]);
+              }}
+              variant="secondary"
+            >
+              {t("clear")}
+            </Button>
+          )}
+        </div>
 
         {selectedGroup.map((group_id) => {
           const currentGroupsInvestigations = selectedInvestigations.filter(
@@ -305,7 +318,7 @@ const Investigation = (props: {
             : listOfInvestigations(group_id, investigations?.results || []);
           const group = findGroup(group_id, investigationGroups?.results || []);
           return (
-            <Card>
+            <Card key={group_id}>
               <TestTable
                 data={filteredInvestigations}
                 title={group?.name}
@@ -316,15 +329,6 @@ const Investigation = (props: {
             </Card>
           );
         })}
-
-        <div className="mt-4 flex justify-end">
-          <Submit
-            className="w-full md:w-auto"
-            onClick={handleSubmit}
-            disabled={saving || !selectedGroup.length}
-            label={t("save_investigation")}
-          />
-        </div>
       </div>
     </Page>
   );
