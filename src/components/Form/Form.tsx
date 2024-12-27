@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
-import { Form as FormContainer } from "@/components/ui/form";
 
 import { FieldValidator } from "@/components/Form/FieldValidators";
 import {
@@ -51,7 +50,6 @@ const Form = <T extends FormDetails>({
   const initial = { form: props.defaults, errors: {} };
   const [isLoading, setIsLoading] = useState(!!asyncGetDefaults);
   const [state, dispatch] = useAutoSaveReducer<T>(formReducer, initial);
-  const [isEdited, setIsEdited] = useState(false);
   const formVals = useRef(props.defaults);
 
   interface FormData extends FormDetails {
@@ -62,6 +60,8 @@ const Form = <T extends FormDetails>({
     defaultValues: props.defaults,
     mode: "onChange",
   });
+
+  const { formState } = methods;
 
   useEffect(() => {
     if (!asyncGetDefaults) return;
@@ -97,7 +97,6 @@ const Form = <T extends FormDetails>({
       } else if (props.resetFormValsOnSubmit) {
         dispatch({ type: "set_form", form: formVals.current });
         methods.reset(formVals.current);
-        setIsEdited(false);
       }
     } catch (error) {
       console.error("Form submission error:", error);
@@ -110,87 +109,89 @@ const Form = <T extends FormDetails>({
       dispatch({ type: "set_form", form: formVals.current });
     }
     props.onCancel?.();
-    setIsEdited(false);
   };
 
   const { Provider, Consumer } = useMemo(() => createFormContext<T>(), []);
   const disabled = isLoading || props.disabled;
 
   return (
-    <FormProvider {...methods}>
-      <form
-        onSubmit={methods.handleSubmit((data) => handleSubmit(data as T))}
-        onKeyDown={(e: React.KeyboardEvent<HTMLFormElement>) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            methods.handleSubmit((data) => handleSubmit(data as T))();
-          }
+    <form
+      onSubmit={methods.handleSubmit((data) => handleSubmit(data as T))}
+      onKeyDown={(e: React.KeyboardEvent<HTMLFormElement>) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          methods.handleSubmit((data) => handleSubmit(data as T))();
+        }
+      }}
+      className={classNames(
+        "mx-auto w-full",
+        !props.noPadding && "px-8 py-5 md:px-16 md:py-11",
+        props.className,
+      )}
+      noValidate
+    >
+      <DraftSection
+        handleDraftSelect={(newState: FormState<T>) => {
+          dispatch({ type: "set_state", state: newState });
+          Object.entries(newState.form).forEach(([key, value]) => {
+            methods.setValue(key, value, {
+              shouldDirty: true,
+              shouldTouch: true,
+            });
+          });
+          props.onDraftRestore?.(newState);
         }}
-        className={classNames(
-          "mx-auto w-full",
-          !props.noPadding && "px-8 py-5 md:px-16 md:py-11",
-          props.className,
-        )}
-        noValidate
+        formData={state.form}
+        hidden={props.hideRestoreDraft}
       >
-        <FormContainer {...methods}>
-          <DraftSection
-            handleDraftSelect={(newState: FormState<T>) => {
-              dispatch({ type: "set_state", state: newState });
-              methods.reset(newState.form);
-              props.onDraftRestore?.(newState);
-              setIsEdited(true);
-            }}
-            formData={state.form}
-            hidden={props.hideRestoreDraft}
-          >
-            <Provider
-              value={(name: keyof T, validate?: FieldValidator<T[keyof T]>) => {
-                return {
+        <Provider
+          value={(name: keyof T, validate?: FieldValidator<T[keyof T]>) => {
+            return {
+              name,
+              id: name,
+              onChange: ({ name, value }: FieldChangeEvent<T[keyof T]>) => {
+                dispatch({
+                  type: "set_field",
                   name,
-                  id: name,
-                  onChange: ({ name, value }: FieldChangeEvent<T[keyof T]>) => {
-                    dispatch({
-                      type: "set_field",
-                      name,
-                      value,
-                      error: validate?.(value),
-                    });
-                    setIsEdited(true);
-                  },
-                  value: state.form[name],
-                  error: state.errors[name],
-                  disabled,
-                };
-              }}
+                  value,
+                  error: validate?.(value),
+                });
+                methods.setValue(name as string, value, {
+                  shouldDirty: true,
+                  shouldTouch: true,
+                });
+              },
+              value: state.form[name],
+              error: state.errors[name],
+              disabled,
+            };
+          }}
+        >
+          <div className="my-6">
+            <Consumer>{props.children}</Consumer>
+          </div>
+          <div className="flex flex-col-reverse justify-end gap-3 sm:flex-row">
+            {!hideCancelButton && (
+              <Button
+                onClick={handleCancel}
+                variant="secondary"
+                disabled={disabled}
+              >
+                {props.cancelLabel ?? t("Cancel")}
+              </Button>
+            )}
+            <Button
+              data-testid="submit-button"
+              type="submit"
+              disabled={disabled || !formState.isDirty}
+              variant="primary"
             >
-              <div className="my-6">
-                <Consumer>{props.children}</Consumer>
-              </div>
-              <div className="flex flex-col-reverse justify-end gap-3 sm:flex-row">
-                {!hideCancelButton && (
-                  <Button
-                    onClick={handleCancel}
-                    variant="secondary"
-                    disabled={disabled}
-                  >
-                    {props.cancelLabel ?? t("Cancel")}
-                  </Button>
-                )}
-                <Button
-                  data-testid="submit-button"
-                  type="submit"
-                  disabled={disabled || !isEdited}
-                  variant="primary"
-                >
-                  {props.submitLabel ?? t("Submit")}
-                </Button>
-              </div>
-            </Provider>
-          </DraftSection>
-        </FormContainer>
-      </form>
-    </FormProvider>
+              {props.submitLabel ?? t("Submit")}
+            </Button>
+          </div>
+        </Provider>
+      </DraftSection>
+    </form>
   );
 };
 
