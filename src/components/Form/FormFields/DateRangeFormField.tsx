@@ -34,13 +34,23 @@ type Props = FormFieldBaseProps<DateRange> & {
  */
 const DateRangeFormField = (props: Props) => {
   const field = useFormFieldPropsResolver(props);
+
+  const handleDateRangeChange = (newValue: DateRange) => {
+    if (newValue.start && newValue.end) {
+      if (newValue.end < newValue.start) {
+        newValue.end = new Date(newValue.start);
+      }
+    }
+    field.handleChange(newValue);
+  };
+
   return (
     <FormField field={field}>
       <DateRangeInputV2
         name={field.name}
         className={classNames(field.error && "border-red-500")}
         value={field.value}
-        onChange={field.handleChange}
+        onChange={handleDateRangeChange}
         disabled={field.disabled}
         min={props.min || (props.disableFuture ? new Date() : undefined)}
         max={props.max || (props.disablePast ? new Date() : undefined)}

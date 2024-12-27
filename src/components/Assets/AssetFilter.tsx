@@ -81,16 +81,9 @@ function AssetFilter(props: any) {
   };
 
   const handleDateRangeChange = (event: FieldChangeEvent<DateRange>) => {
-    const startDate = event.value.start;
-    let endDate = event.value.end;
-
-    if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
-      endDate = startDate;
-    }
-
     const state = { ...warrantyExpiry };
-    state.after = startDate?.toString();
-    state.before = endDate?.toString();
+    state.after = event.value.start?.toString();
+    state.before = event.value.end?.toString();
     setWarrantyExpiry(state);
   };
 
