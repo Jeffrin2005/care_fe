@@ -22,16 +22,25 @@ describe("Patient Investigation Creation from Patient consultation page", () => 
 
   it("Create a investigation for a patient and verify its reflection", () => {
     patientPage.visitPatient(patientName);
+    cy.url().should("include", "/patient");
+
     patientInvestigation.clickInvestigationTab();
+    cy.get("#consultation_tab_nav").should("exist");
+
     patientInvestigation.clickLogLabResults();
+    cy.get("#log-lab-results").should("exist");
+
     patientInvestigation.selectInvestigationOption([
       "Haematology",
       "Urine Test",
     ]);
-    cy.clickSubmitButton("Save Investigation");
+
+    cy.get("button")
+      .contains("Save Investigation")
+      .should("be.visible")
+      .click();
     cy.verifyNotification("Please Enter at least one value");
     cy.closeNotification();
-    // Temporary workflow for investigation since we dont have dummy data and moving away from existing module
   });
 
   afterEach(() => {

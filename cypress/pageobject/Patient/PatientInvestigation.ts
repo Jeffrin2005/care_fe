@@ -18,10 +18,16 @@ class PatientInvestigation {
   }
 
   selectInvestigationOption(options: string[]) {
-    cy.get("#investigation-select").click();
+    // Click to open dropdown
+    cy.get("#investigation-select").should("exist").click();
+
+    // Select each option
     options.forEach((option) => {
-      cy.get("[role='option']").contains(option).click();
+      cy.get("[role='option']").contains(option).should("be.visible").click();
     });
+
+    // Click outside to close dropdown (if needed)
+    cy.get("body").click(0, 0);
   }
 
   clickLogLabResults() {
