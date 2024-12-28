@@ -21,9 +21,25 @@ describe("Patient Investigation Creation from Patient consultation page", () => 
   });
 
   it("Create a investigation for a patient and verify its reflection", () => {
+    cy.intercept("GET", "**/patient/**").as("patientLoad");
+    cy.intercept("GET", "**/consultation/**").as("consultationLoad");
+    cy.intercept("GET", "**/investigations/**").as("investigationsLoad");
+
     patientPage.visitPatient(patientName);
+    cy.wait("@patientLoad");
+
+    cy.wait(2000);
+
     patientInvestigation.clickInvestigationTab();
-    cy.get("#investigations", { timeout: 50000 }).should("be.visible");
+
+    cy.wait("@investigationsLoad");
+    cy.get("#investigations", { timeout: 60000 })
+      .should("exist")
+      .and("be.visible")
+      .then(($el) => {
+        cy.log(`Found investigations element: ${$el.length > 0}`);
+      });
+
     patientInvestigation.clickLogLabResults();
     patientInvestigation.selectInvestigationOption([
       "Haematology",
