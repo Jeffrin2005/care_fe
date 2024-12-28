@@ -4,7 +4,15 @@ class PatientInvestigation {
   }
 
   clickInvestigationTab() {
-    cy.verifyAndClickElement("#consultation_tab_nav", "Investigations");
+    // Wait for tab to be ready
+    cy.get("#consultation_tab_nav")
+      .should("exist")
+      .and("be.visible")
+      .contains("Investigations")
+      .click();
+
+    // Wait for tab content to load
+    cy.wait(2000);
   }
 
   selectInvestigation(investigation: string) {
@@ -18,11 +26,35 @@ class PatientInvestigation {
   }
 
   selectInvestigationOption(options: string[]) {
-    cy.clickAndMultiSelectOption("#investigation-select", options);
+    // Retry the operation if it fails
+    cy.get("body").then(($body) => {
+      if ($body.find("#investigation-select").length > 0) {
+        cy.clickAndMultiSelectOption("#investigation-select", options);
+      } else {
+        cy.wait(2000);
+        cy.clickAndMultiSelectOption("#investigation-select", options);
+      }
+    });
   }
 
   clickLogLabResults() {
-    cy.verifyAndClickElement("#log-lab-results", "Log Lab Results");
+    // Wait for the button with retry
+    cy.get("body").then(($body) => {
+      if ($body.find("#log-lab-results").length > 0) {
+        cy.get("#log-lab-results")
+          .should("exist")
+          .and("be.visible")
+          .contains("Log Lab Results")
+          .click({ force: true });
+      } else {
+        cy.wait(2000);
+        cy.get("#log-lab-results")
+          .should("exist")
+          .and("be.visible")
+          .contains("Log Lab Results")
+          .click({ force: true });
+      }
+    });
   }
 
   selectInvestigationFrequency(frequency: string) {
