@@ -22,10 +22,16 @@ describe("Patient Investigation Creation from Patient consultation page", () => 
 
   it("Create a investigation for a patient and verify its reflection", () => {
     patientPage.visitPatient(patientName);
-    patientInvestigation.clickInvestigationTab();
-    patientInvestigation.clickLogLabResults();
 
-    cy.get("#investigations", { timeout: 20000 })
+    cy.get("body").should("contain", patientName);
+
+    patientInvestigation.clickInvestigationTab();
+    cy.get("#consultation_tab_nav").should("be.visible");
+
+    patientInvestigation.clickLogLabResults();
+    cy.get("#log-lab-results").should("be.visible");
+
+    cy.get("#investigation-select", { timeout: 20000 })
       .should("exist")
       .and("be.visible");
 
@@ -33,6 +39,7 @@ describe("Patient Investigation Creation from Patient consultation page", () => 
       "Haematology",
       "Urine Test",
     ]);
+
     cy.clickSubmitButton("Save Investigation");
     cy.verifyNotification("Please Enter at least one value");
     cy.closeNotification();

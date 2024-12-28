@@ -18,7 +18,13 @@ class PatientInvestigation {
   }
 
   selectInvestigationOption(options: string[]) {
-    cy.clickAndMultiSelectOption("#investigations", options);
+    // Wait for the investigation select to be ready
+    cy.get("#investigation-select", { timeout: 20000 })
+      .should("exist")
+      .and("be.visible")
+      .then(() => {
+        cy.clickAndMultiSelectOption("#investigation-select", options);
+      });
   }
 
   clickLogLabResults() {
