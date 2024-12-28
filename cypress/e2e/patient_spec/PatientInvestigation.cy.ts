@@ -22,16 +22,21 @@ describe("Patient Investigation Creation from Patient consultation page", () => 
 
   it("Create a investigation for a patient and verify its reflection", () => {
     patientPage.visitPatient(patientName);
+    cy.get("#investigations", { timeout: 20000 }).should("be.visible").click();
+
     patientInvestigation.clickInvestigationTab();
     patientInvestigation.clickLogLabResults();
     patientInvestigation.selectInvestigationOption([
       "Haematology",
       "Urine Test",
     ]);
-    cy.clickSubmitButton("Save Investigation");
+
+    cy.get('button:contains("Save Investigation")', { timeout: 20000 })
+      .should("be.visible")
+      .click();
+
     cy.verifyNotification("Please Enter at least one value");
     cy.closeNotification();
-    // Temporary workflow for investigation since we dont have dummy data and moving away from existing module
   });
 
   afterEach(() => {
