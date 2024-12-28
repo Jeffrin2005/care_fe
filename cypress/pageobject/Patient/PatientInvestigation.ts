@@ -4,14 +4,11 @@ class PatientInvestigation {
   }
 
   clickInvestigationTab() {
-    // Wait for tab to be ready
     cy.get("#consultation_tab_nav")
       .should("exist")
       .and("be.visible")
       .contains("Investigations")
       .click();
-
-    // Wait for tab content to load
     cy.wait(2000);
   }
 
@@ -26,7 +23,6 @@ class PatientInvestigation {
   }
 
   selectInvestigationOption(options: string[]) {
-    // Retry the operation if it fails
     cy.get("body").then(($body) => {
       if ($body.find("#investigation-select").length > 0) {
         cy.clickAndMultiSelectOption("#investigation-select", options);
@@ -38,7 +34,6 @@ class PatientInvestigation {
   }
 
   clickLogLabResults() {
-    // Wait for the button with retry
     cy.get("body").then(($body) => {
       if ($body.find("#log-lab-results").length > 0) {
         cy.get("#log-lab-results")
