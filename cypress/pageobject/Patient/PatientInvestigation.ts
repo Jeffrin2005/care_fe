@@ -18,10 +18,7 @@ class PatientInvestigation {
   }
 
   selectInvestigationOption(options: string[]) {
-    cy.get("#investigation-select").click();
-    options.forEach((option) => {
-      cy.get("[role='option']").contains(option).click();
-    });
+    cy.clickAndMultiSelectOption("#investigations", options);
   }
 
   clickLogLabResults() {
@@ -33,5 +30,4 @@ class PatientInvestigation {
     cy.contains("button", frequency).should("be.visible").click();
   }
 }
-
 export default PatientInvestigation;
