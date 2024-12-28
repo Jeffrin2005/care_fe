@@ -1,78 +1,33 @@
 class PatientInvestigation {
   clickAddInvestigation() {
-    cy.get("#investigation")
-      .should("exist")
-      .and("be.visible")
-      .contains("Add Investigation")
-      .click();
+    cy.verifyAndClickElement("#investigation", "Add Investigation");
   }
 
   clickInvestigationTab() {
-    cy.get("#consultation_tab_nav")
-      .should("exist")
-      .and("be.visible")
-      .contains("Investigations")
-      .click()
-      .then(() => {
-        cy.log("Clicked investigations tab");
-      });
+    cy.verifyAndClickElement("#consultation_tab_nav", "Investigations");
   }
 
   selectInvestigation(investigation: string) {
-    cy.get("#search-patient-investigation")
-      .should("exist")
-      .and("be.visible")
-      .clear()
-      .type(investigation);
-
-    cy.get("#investigation-group")
-      .should("exist")
-      .and("be.visible")
-      .contains(investigation)
-      .click();
-
-    cy.get("#investigation")
-      .should("exist")
-      .and("be.visible")
-      .contains("Investigation No. 1")
-      .click();
+    cy.get("#search-patient-investigation").type(investigation);
+    cy.verifyAndClickElement("#investigation-group", investigation);
+    cy.verifyAndClickElement("#investigation", "Investigation No. 1");
   }
 
   clickInvestigationCheckbox() {
-    cy.get("#investigation-checkbox").should("exist").and("be.visible").click();
+    cy.get("#investigation-checkbox").click();
   }
 
   selectInvestigationOption(options: string[]) {
-    cy.get("#investigations")
-      .should("exist")
-      .and("be.visible")
-      .then(() => {
-        options.forEach((option) => {
-          cy.get("#investigations")
-            .contains(option)
-            .should("exist")
-            .and("be.visible")
-            .click();
-        });
-      });
+    cy.clickAndMultiSelectOption("#investigations", options);
   }
 
   clickLogLabResults() {
-    cy.get("#log-lab-results")
-      .should("exist")
-      .and("be.visible")
-      .contains("Log Lab Results")
-      .click();
+    cy.verifyAndClickElement("#log-lab-results", "Log Lab Results");
   }
 
   selectInvestigationFrequency(frequency: string) {
-    cy.get("#investigation-frequency")
-      .should("exist")
-      .and("be.visible")
-      .click();
-
-    cy.contains("button", frequency).should("exist").and("be.visible").click();
+    cy.get("#investigation-frequency").click();
+    cy.contains("button", frequency).should("be.visible").click();
   }
 }
-
 export default PatientInvestigation;
