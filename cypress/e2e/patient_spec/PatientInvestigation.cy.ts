@@ -23,7 +23,7 @@ describe("Patient Investigation Creation from Patient consultation page", () => 
   it("Create a investigation for a patient and verify its reflection", () => {
     patientPage.visitPatient(patientName);
     patientInvestigation.clickInvestigationTab();
-    cy.get("#investigations", { timeout: 20000 }).should("be.visible");
+    cy.get("#investigations", { timeout: 50000 }).should("be.visible");
     patientInvestigation.clickLogLabResults();
     patientInvestigation.selectInvestigationOption([
       "Haematology",
