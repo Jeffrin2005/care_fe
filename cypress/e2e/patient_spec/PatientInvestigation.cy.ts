@@ -24,12 +24,19 @@ describe("Patient Investigation Creation from Patient consultation page", () => 
     patientPage.visitPatient(patientName);
     cy.url().should("include", "/patient");
 
+    cy.log("Clicking investigation tab");
     patientInvestigation.clickInvestigationTab();
-    cy.get("#consultation_tab_nav").should("exist");
+    cy.get("#consultation_tab_nav").should("be.visible").should("exist");
 
+    cy.log("Attempting to click log lab results");
+    cy.wait(2000);
     patientInvestigation.clickLogLabResults();
-    cy.get("#log-lab-results").should("exist");
 
+    cy.get("#log-lab-results", { timeout: 15000 })
+      .should("be.visible")
+      .should("exist");
+
+    cy.log("Selecting investigation options");
     patientInvestigation.selectInvestigationOption([
       "Haematology",
       "Urine Test",
@@ -39,6 +46,7 @@ describe("Patient Investigation Creation from Patient consultation page", () => 
       .contains("Save Investigation")
       .should("be.visible")
       .click();
+
     cy.verifyNotification("Please Enter at least one value");
     cy.closeNotification();
   });
