@@ -18,7 +18,10 @@ class PatientInvestigation {
   }
 
   selectInvestigationOption(options: string[]) {
-    cy.clickAndMultiSelectOption("#investigations", options);
+    cy.get("#investigation-select").click();
+    options.forEach((option) => {
+      cy.get("[role='option']").contains(option).click();
+    });
   }
 
   clickLogLabResults() {
