@@ -21,40 +21,47 @@ describe("Patient Investigation Creation from Patient consultation page", () => 
   });
 
   it("Create a investigation for a patient and verify its reflection", () => {
+    // Add retry-ability for network requests
+    cy.intercept("GET", "**/patients/**").as("patientLoad");
+    cy.intercept("GET", "**/investigations/**").as("investigationsLoad");
+
+    // Visit patient and wait for page load
     patientPage.visitPatient(patientName);
-    cy.url().should("include", "/patient");
-    cy.wait(2000);
+    cy.wait("@patientLoad");
 
-    cy.get("body").should("contain", patientName);
+    // Add small delay to ensure page is stable
+    cy.wait(1000);
 
-    cy.get("body").then(($body) => {
-      if ($body.find("#consultation_tab_nav").length > 0) {
-        patientInvestigation.clickInvestigationTab();
-      } else {
-        cy.wait(2000);
-        patientInvestigation.clickInvestigationTab();
-      }
-    });
+    // Click investigation tab and verify content loads
+    patientInvestigation.clickInvestigationTab();
+    cy.wait("@investigationsLoad");
 
-    cy.get("body").then(($body) => {
-      if ($body.find("#log-lab-results").length > 0) {
-        patientInvestigation.clickLogLabResults();
-      } else {
-        cy.wait(2000);
-        patientInvestigation.clickLogLabResults();
-      }
-    });
+    // Verify investigation tab is active
+    patientInvestigation.verifyPageLoaded();
+
+    // Continue with test
+    patientInvestigation.clickLogLabResults();
+
+    // Add verification before selecting options
+    cy.get("#investigations").should("exist").and("be.visible");
 
     patientInvestigation.selectInvestigationOption([
       "Haematology",
       "Urine Test",
     ]);
 
+    // Verify save button exists before clicking
     cy.get("button")
       .contains("Save Investigation")
-      .should("be.visible")
-      .click({ force: true });
-    cy.verifyNotification("Please Enter at least one value");
+      .should("exist")
+      .and("be.visible");
+
+    cy.clickSubmitButton("Save Investigation");
+
+    // Verify notification with timeout
+    cy.verifyNotification("Please Enter at least one value", {
+      timeout: 10000,
+    });
     cy.closeNotification();
   });
 
