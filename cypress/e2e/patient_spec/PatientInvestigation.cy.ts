@@ -22,10 +22,17 @@ describe("Patient Investigation Creation from Patient consultation page", () => 
 
   it("Create a investigation for a patient and verify its reflection", () => {
     patientPage.visitPatient(patientName);
-    cy.get("#investigations", { timeout: 20000 }).should("be.visible").click();
 
-    patientInvestigation.clickInvestigationTab();
-    patientInvestigation.clickLogLabResults();
+    cy.get("body").should("contain", patientName);
+
+    cy.get("#consultation_tab_nav", { timeout: 20000 })
+      .should("be.visible")
+      .click();
+
+    cy.get("#log-lab-results", { timeout: 20000 }).should("be.visible").click();
+
+    cy.get("#investigations", { timeout: 20000 }).should("be.visible");
+
     patientInvestigation.selectInvestigationOption([
       "Haematology",
       "Urine Test",
@@ -37,6 +44,7 @@ describe("Patient Investigation Creation from Patient consultation page", () => 
 
     cy.verifyNotification("Please Enter at least one value");
     cy.closeNotification();
+    // Temporary workflow for investigation since we dont have dummy data and moving away from existing module
   });
 
   afterEach(() => {

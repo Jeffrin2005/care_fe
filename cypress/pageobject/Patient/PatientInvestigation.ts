@@ -18,7 +18,6 @@ class PatientInvestigation {
   }
 
   selectInvestigationOption(options: string[]) {
-    cy.get("#investigations", { timeout: 15000 }).should("be.visible");
     cy.clickAndMultiSelectOption("#investigations", options);
   }
 
