@@ -5,6 +5,7 @@ class PatientInvestigation {
 
   clickInvestigationTab() {
     cy.verifyAndClickElement("#consultation_tab_nav", "Investigations");
+    cy.get("#investigations", { timeout: 15000 }).should("exist");
   }
 
   selectInvestigation(investigation: string) {
