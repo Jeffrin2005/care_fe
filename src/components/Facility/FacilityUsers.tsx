@@ -11,26 +11,16 @@ import useFilters from "@/hooks/useFilters";
 
 import routes from "@/Utils/request/api";
 import query from "@/Utils/request/query";
-import useTanStackQueryInstead from "@/Utils/request/useQuery";
 
 export default function FacilityUsers(props: { facilityId: number }) {
   const { t } = useTranslation();
-  const { qParams, updateQuery, Pagination } = useFilters({
+  const { Pagination } = useFilters({
     limit: 18,
     cacheBlacklist: ["username"],
   });
+  const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState(0);
   const { facilityId } = props;
-
-  const { data: facilityData } = useTanStackQueryInstead(
-    routes.getAnyFacility,
-    {
-      pathParams: {
-        id: facilityId,
-      },
-      prefetch: facilityId !== undefined,
-    },
-  );
 
   const { data: userListData, isLoading: userListLoading } = useQuery({
     queryKey: ["facilityUsers", facilityId],
@@ -43,16 +33,23 @@ export default function FacilityUsers(props: { facilityId: number }) {
   if (userListLoading) {
     return <div>Loading...</div>;
   }
-  if (!userListData) {
-    return <div>No users found</div>;
+  if (!userListData?.results?.length) {
+    return <div>{t("no_users_found")}</div>;
   }
 
+  const filteredUsers = searchTerm
+    ? userListData.results.filter((user) => {
+        const searchString = searchTerm.toLowerCase();
+        return (
+          user.username?.toLowerCase().includes(searchString) ||
+          user.first_name?.toLowerCase().includes(searchString) ||
+          user.last_name?.toLowerCase().includes(searchString)
+        );
+      })
+    : userListData.results;
+
   return (
-    <Page
-      title={`${t("users")} - ${facilityData?.name}`}
-      hideBack={true}
-      breadcrumbs={false}
-    >
+    <Page title={`${t("users")}`} hideBack={true} breadcrumbs={false}>
       <CountBlock
         text={t("total_users")}
         count={userListData.count}
@@ -62,9 +59,9 @@ export default function FacilityUsers(props: { facilityId: number }) {
       />
 
       <UserListView
-        users={userListData?.results ?? []}
-        onSearch={(username) => updateQuery({ username })}
-        searchValue={qParams.username}
+        users={filteredUsers}
+        onSearch={(value) => setSearchTerm(value)}
+        searchValue={searchTerm}
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
