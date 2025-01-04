@@ -33,6 +33,7 @@ export default function FacilityUsers(props: { facilityId: number }) {
   if (userListLoading) {
     return <div>Loading...</div>;
   }
+
   if (!userListData) {
     return <div>{t("no_users_found")}</div>;
   }
