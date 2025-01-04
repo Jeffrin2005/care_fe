@@ -1,4 +1,5 @@
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -43,76 +44,24 @@ export default function ScheduleTemplatesList({ items }: Props) {
   const { toast } = useToast();
   const facilityId = useSlug("facility");
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (items !== undefined) {
-      setScheduleTemplates(items);
-      setIsLoading(false);
-      return;
-    }
-
-    const fetchScheduleTemplates = async () => {
-      if (!facilityId) {
-        toast({
-          title: t("error"),
-          description: t("facility_id_is_missing"),
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const { data } = await request(ScheduleAPIs.templates.list, {
-          pathParams: { facility_id: facilityId },
-        });
-
-        if (data && "results" in data) {
-          setScheduleTemplates(data.results);
-        } else {
-          throw new Error(t("invalid_response_format"));
-        }
-      } catch (error) {
-        console.error(t("failed_to_fetch_schedule_templates"), error);
-        toast({
-          title: t("error"),
-          description: t("failed_to_load_schedule_templates"),
-          variant: "destructive",
-        });
-        setScheduleTemplates([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchScheduleTemplates();
-  }, [facilityId, items, toast, t]);
-
-  const handleDelete = async (id: string) => {
-    if (!scheduleTemplates || !facilityId) return;
-
-    try {
-      const { error } = await request(ScheduleAPIs.templates.delete, {
-        pathParams: { facility_id: facilityId, id },
-      });
-
-      if (error) {
-        throw new Error(t("failed_to_delete_template"));
-      }
-
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) =>
+      request(ScheduleAPIs.templates.delete, {
+        pathParams: { facility_id: facilityId!, id },
+      }),
+    onSuccess: (_, id) => {
       setScheduleTemplates((prevTemplates) =>
         prevTemplates
           ? prevTemplates.filter((template) => template.id !== id)
           : [],
       );
-
-      toast({
-        title: t("success"),
-        description: t("schedule_template_deleted_successfully"),
-        variant: "default",
+      queryClient.invalidateQueries({
+        queryKey: ["scheduleTemplates", facilityId],
       });
-    } catch (error) {
-      console.error(t("failed_to_delete_schedule_template"), error);
+    },
+    onError: (_) => {
       toast({
         title: t("error"),
         description: t(
@@ -120,8 +69,18 @@ export default function ScheduleTemplatesList({ items }: Props) {
         ),
         variant: "destructive",
       });
-    }
+    },
+  });
+  const handleDelete = (id: string) => {
+    if (!scheduleTemplates || !facilityId) return;
+    deleteMutation.mutate(id);
   };
+  useEffect(() => {
+    if (items !== undefined) {
+      setScheduleTemplates(items);
+      setIsLoading(false);
+    }
+  }, [items]);
 
   if (isLoading || scheduleTemplates === null) {
     return <Loading />;
@@ -169,7 +128,7 @@ const ScheduleTemplateItem: React.FC<ScheduleTemplateItemProps> = (props) => {
               {t("scheduled_for")}{" "}
               <strong className="font-medium">
                 {getDaysOfWeekFromAvailabilities(props.availabilities)
-                  .map((day) => t(`days_of_week_short__${day}`))
+                  .map((day) => t(`DAYS_OF_WEEK_SHORT__${day}`))
                   .join(", ")}
               </strong>
             </span>
@@ -229,10 +188,14 @@ const ScheduleTemplateItem: React.FC<ScheduleTemplateItemProps> = (props) => {
           ))}
         </ul>
         <span className="text-sm text-gray-500">
-          {t("valid_from_till", {
-            fromDate: format(parseISO(props.valid_from), "EEE, dd MMM yyyy"),
-            toDate: format(parseISO(props.valid_to), "EEE, dd MMM yyyy"),
-          })}
+          {t("valid_from")}{" "}
+          <strong className="font-semibold">
+            {format(parseISO(props.valid_from), "EEE, dd MMM yyyy")}
+          </strong>{" "}
+          {t("till")}{" "}
+          <strong className="font-semibold">
+            {format(parseISO(props.valid_to), "EEE, dd MMM yyyy")}
+          </strong>
         </span>
       </div>
     </div>
