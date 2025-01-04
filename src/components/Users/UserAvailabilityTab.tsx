@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
@@ -41,10 +42,10 @@ type Props = {
 export default function UserAvailabilityTab({ userData: user }: Props) {
   const [view, setView] = useState<"schedule" | "exceptions">("schedule");
   const [month, setMonth] = useState(new Date());
+  const { t } = useTranslation();
 
   const facilityId = useSlug("facility");
 
-  // TODO: remove this once we have a way to get the facilityId
   useEffect(() => {
     if (!facilityId) {
       toast.error("User needs to be linked to a home facility");
@@ -81,7 +82,6 @@ export default function UserAvailabilityTab({ userData: user }: Props) {
         renderDay={(date: Date) => {
           const isToday = date.toDateString() === new Date().toDateString();
 
-          // TODO: handle for "Closed" schedule type once we have it...
           const templates = templatesQuery.data?.results.filter(
             (template) =>
               isDateInRange(date, template.valid_from, template.valid_to) &&
@@ -193,7 +193,6 @@ export default function UserAvailabilityTab({ userData: user }: Props) {
                                 <span>{slot_type}</span>
                                 <span className="px-2 text-gray-300">|</span>
                                 <span className="text-sm">
-                                  {/* TODO: handle multiple days of week */}
                                   {formatAvailabilityTime(availability)}
                                 </span>
                               </p>
@@ -228,7 +227,7 @@ export default function UserAvailabilityTab({ userData: user }: Props) {
               onClick={() => setView("schedule")}
               className={cn(view === "schedule" && "shadow", "hover:bg-white")}
             >
-              Schedule
+              {t("SCHEDULE")}
             </Button>
             <Button
               variant={view === "exceptions" ? "outline" : "ghost"}
@@ -238,7 +237,7 @@ export default function UserAvailabilityTab({ userData: user }: Props) {
                 "hover:bg-white",
               )}
             >
-              Exceptions
+              {t("EXCEPTIONS")}
             </Button>
           </div>
           {view === "schedule" && (
@@ -295,7 +294,6 @@ const diagonalStripes = {
     )`,
 };
 
-// TODO: remove this in favour of supporting flexible day of week availability
 export const formatAvailabilityTime = (
   availability: ScheduleAvailability["availability"],
 ) => {
