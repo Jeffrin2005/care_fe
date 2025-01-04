@@ -48,9 +48,9 @@ export default function UserAvailabilityTab({ userData: user }: Props) {
 
   useEffect(() => {
     if (!facilityId) {
-      toast.error("User needs to be linked to a home facility");
+      toast.error(t("user_needs_to_be_linked_to_home_facility"));
     }
-  }, [facilityId]);
+  }, [facilityId, t]);
 
   const templatesQuery = useQuery({
     queryKey: ["user-availability-templates", user.username],
@@ -161,7 +161,7 @@ export default function UserAvailabilityTab({ userData: user }: Props) {
                     })}
                   </p>
                   <Button variant="outline" size="sm">
-                    Add Exception
+                    {t("add_exception")}
                   </Button>
                 </div>
 
@@ -227,7 +227,7 @@ export default function UserAvailabilityTab({ userData: user }: Props) {
               onClick={() => setView("schedule")}
               className={cn(view === "schedule" && "shadow", "hover:bg-white")}
             >
-              {t("SCHEDULE")}
+              {t("schedule")}
             </Button>
             <Button
               variant={view === "exceptions" ? "outline" : "ghost"}
@@ -237,7 +237,7 @@ export default function UserAvailabilityTab({ userData: user }: Props) {
                 "hover:bg-white",
               )}
             >
-              {t("EXCEPTIONS")}
+              {t("exceptions")}
             </Button>
           </div>
           {view === "schedule" && (

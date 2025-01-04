@@ -54,8 +54,8 @@ export default function ScheduleTemplatesList({ items }: Props) {
     const fetchScheduleTemplates = async () => {
       if (!facilityId) {
         toast({
-          title: t("ERROR"),
-          description: t("FACILITY_ID_IS_MISSING"),
+          title: t("error"),
+          description: t("facility_id_is_missing"),
           variant: "destructive",
         });
         return;
@@ -70,13 +70,13 @@ export default function ScheduleTemplatesList({ items }: Props) {
         if (data && "results" in data) {
           setScheduleTemplates(data.results);
         } else {
-          throw new Error("Invalid response format");
+          throw new Error(t("invalid_response_format"));
         }
       } catch (error) {
-        console.error("Failed to fetch schedule templates:", error);
+        console.error(t("failed_to_fetch_schedule_templates"), error);
         toast({
-          title: t("ERROR"),
-          description: t("FAILED_TO_LOAD_SCHEDULE_TEMPLATES"),
+          title: t("error"),
+          description: t("failed_to_load_schedule_templates"),
           variant: "destructive",
         });
         setScheduleTemplates([]);
@@ -97,7 +97,7 @@ export default function ScheduleTemplatesList({ items }: Props) {
       });
 
       if (error) {
-        throw new Error("Failed to delete template");
+        throw new Error(t("failed_to_delete_template"));
       }
 
       setScheduleTemplates((prevTemplates) =>
@@ -107,16 +107,16 @@ export default function ScheduleTemplatesList({ items }: Props) {
       );
 
       toast({
-        title: t("SUCCESS"),
-        description: t("SCHEDULE_TEMPLATE_DELETED_SUCCESSFULLY"),
+        title: t("success"),
+        description: t("schedule_template_deleted_successfully"),
         variant: "default",
       });
     } catch (error) {
-      console.error("Failed to delete schedule template:", error);
+      console.error(t("failed_to_delete_schedule_template"), error);
       toast({
-        title: t("ERROR"),
+        title: t("error"),
         description: t(
-          "AN_ERROR_OCCURRED_WHILE_DELETING_THE_SCHEDULE_TEMPLATE",
+          "an_error_occurred_while_deleting_the_schedule_template",
         ),
         variant: "destructive",
       });
@@ -131,7 +131,7 @@ export default function ScheduleTemplatesList({ items }: Props) {
     return (
       <div className="flex flex-col items-center text-center text-gray-500 py-64">
         <CareIcon icon="l-calendar-slash" className="size-10 mb-3" />
-        <p>{t("NO_SCHEDULE_TEMPLATES_FOUND_FOR_THIS_MONTH")}</p>
+        <p>{t("No schedule templates found for this month.")}</p>
       </div>
     );
   }
@@ -166,10 +166,10 @@ const ScheduleTemplateItem: React.FC<ScheduleTemplateItemProps> = (props) => {
           <div className="flex flex-col">
             <span className="text-lg font-semibold">{props.name}</span>
             <span className="text-sm text-gray-700">
-              {t("SCHEDULED_FOR")}{" "}
+              {t("scheduled_for")}{" "}
               <strong className="font-medium">
                 {getDaysOfWeekFromAvailabilities(props.availabilities)
-                  .map((day) => t(`DAYS_OF_WEEK_SHORT__${day}`))
+                  .map((day) => t(`days_of_week_short__${day}`))
                   .join(", ")}
               </strong>
             </span>
@@ -177,7 +177,7 @@ const ScheduleTemplateItem: React.FC<ScheduleTemplateItemProps> = (props) => {
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label={t("OPTIONS")}>
+            <Button variant="ghost" size="icon" aria-label={t("options")}>
               <DotsHorizontalIcon />
             </Button>
           </DropdownMenuTrigger>
@@ -186,7 +186,7 @@ const ScheduleTemplateItem: React.FC<ScheduleTemplateItemProps> = (props) => {
               className="cursor-pointer"
               onClick={() => onDelete(props.id)}
             >
-              {t("DELETE")}
+              {t("delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -216,7 +216,7 @@ const ScheduleTemplateItem: React.FC<ScheduleTemplateItemProps> = (props) => {
                             slot.slot_size_in_minutes,
                           ) ?? 0,
                         )}{" "}
-                        {t("SLOTS_OF")} {slot.slot_size_in_minutes} {t("MINS")}
+                        {t("slots_of")} {slot.slot_size_in_minutes} {t("mins")}
                       </span>
                     </p>
                   </div>
@@ -229,7 +229,7 @@ const ScheduleTemplateItem: React.FC<ScheduleTemplateItemProps> = (props) => {
           ))}
         </ul>
         <span className="text-sm text-gray-500">
-          {t("VALID_FROM_TILL", {
+          {t("valid_from_till", {
             fromDate: format(parseISO(props.valid_from), "EEE, dd MMM yyyy"),
             toDate: format(parseISO(props.valid_to), "EEE, dd MMM yyyy"),
           })}
