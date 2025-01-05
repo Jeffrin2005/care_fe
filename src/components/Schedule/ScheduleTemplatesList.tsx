@@ -28,9 +28,8 @@ import {
 import { formatAvailabilityTime } from "@/components/Users/UserAvailabilityTab";
 
 import useSlug from "@/hooks/useSlug";
-import { useToast } from "@/hooks/useToast";
 
-import request from "@/Utils/request/request";
+import mutate from "@/Utils/request/mutate";
 
 interface Props {
   items?: ScheduleTemplate[];
@@ -41,33 +40,23 @@ export default function ScheduleTemplatesList({ items }: Props) {
     ScheduleTemplate[] | null
   >(items || null);
   const [isLoading, setIsLoading] = useState<boolean>(!items);
-  const { toast } = useToast();
   const facilityId = useSlug("facility");
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) =>
-      request(ScheduleAPIs.templates.delete, {
+      mutate(ScheduleAPIs.templates.delete, {
         pathParams: { facility_id: facilityId!, id },
-      }),
-    onSuccess: (_, id) => {
+      })({}),
+    onSuccess: (_, variables) => {
       setScheduleTemplates((prevTemplates) =>
         prevTemplates
-          ? prevTemplates.filter((template) => template.id !== id)
+          ? prevTemplates.filter((template) => template.id !== variables)
           : [],
       );
       queryClient.invalidateQueries({
         queryKey: ["scheduleTemplates", facilityId],
-      });
-    },
-    onError: (_) => {
-      toast({
-        title: t("error"),
-        description: t(
-          "an_error_occurred_while_deleting_the_schedule_template",
-        ),
-        variant: "destructive",
       });
     },
   });
@@ -125,7 +114,7 @@ const ScheduleTemplateItem: React.FC<ScheduleTemplateItemProps> = (props) => {
           <div className="flex flex-col">
             <span className="text-lg font-semibold">{props.name}</span>
             <span className="text-sm text-gray-700">
-              {t("scheduled_for")}{" "}
+              {t("Scheduled for")}{" "}
               <strong className="font-medium">
                 {getDaysOfWeekFromAvailabilities(props.availabilities)
                   .map((day) => t(`DAYS_OF_WEEK_SHORT__${day}`))
@@ -175,7 +164,7 @@ const ScheduleTemplateItem: React.FC<ScheduleTemplateItemProps> = (props) => {
                             slot.slot_size_in_minutes,
                           ) ?? 0,
                         )}{" "}
-                        {t("slots_of")} {slot.slot_size_in_minutes} {t("mins")}
+                        {t("slots of")} {slot.slot_size_in_minutes} {t("mins")}
                       </span>
                     </p>
                   </div>
@@ -188,7 +177,7 @@ const ScheduleTemplateItem: React.FC<ScheduleTemplateItemProps> = (props) => {
           ))}
         </ul>
         <span className="text-sm text-gray-500">
-          {t("valid_from")}{" "}
+          {t("Valid from")}{" "}
           <strong className="font-semibold">
             {format(parseISO(props.valid_from), "EEE, dd MMM yyyy")}
           </strong>{" "}
