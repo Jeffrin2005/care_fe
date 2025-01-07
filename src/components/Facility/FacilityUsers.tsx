@@ -9,25 +9,20 @@ import UserListView from "@/components/Users/UserListAndCard";
 
 import useFilters from "@/hooks/useFilters";
 
+import { RESULTS_PER_PAGE_LIMIT } from "@/common/constants";
+
 import routes from "@/Utils/request/api";
 import query from "@/Utils/request/query";
 
 export default function FacilityUsers(props: { facilityId: number }) {
   const { t } = useTranslation();
   const { qParams, updateQuery, Pagination } = useFilters({
-    limit: 18,
+    limit: RESULTS_PER_PAGE_LIMIT,
     cacheBlacklist: ["username"],
   });
   const [activeTab, setActiveTab] = useState(0);
   const { facilityId } = props;
   const { username } = qParams;
-
-  const handleSearch = (key: string, value: string) => {
-    updateQuery({
-      ...qParams,
-      [key]: value || undefined,
-    });
-  };
 
   const { data: userListData, isLoading: userListLoading } = useQuery({
     queryKey: ["facilityUsers", facilityId, qParams],
@@ -35,16 +30,13 @@ export default function FacilityUsers(props: { facilityId: number }) {
       pathParams: { facility_id: facilityId },
       queryParams: {
         username,
-        limit: qParams.limit || 18,
-        offset: ((qParams.page || 1) - 1) * (qParams.limit || 18),
+        limit: qParams.limit,
+        offset: (qParams.page - 1) * qParams.limit,
       },
     }),
     enabled: !!facilityId,
   });
 
-  if (userListLoading) {
-    return <div>Loading...</div>;
-  }
   if (!userListData) {
     return <div>{t("no_users_found")}</div>;
   }
@@ -61,15 +53,13 @@ export default function FacilityUsers(props: { facilityId: number }) {
 
       <UserListView
         users={userListData?.results ?? []}
-        onSearch={(username) => handleSearch("username", username)}
+        onSearch={(username) => updateQuery({ username })}
         searchValue={username || ""}
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
 
-      {userListData.count > (qParams.limit || 18) && (
-        <Pagination totalCount={userListData.count} />
-      )}
+      <Pagination totalCount={userListData.count} />
     </Page>
   );
 }
