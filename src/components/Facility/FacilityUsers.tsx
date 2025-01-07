@@ -25,14 +25,13 @@ export default function FacilityUsers(props: { facilityId: number }) {
   });
   const [activeTab, setActiveTab] = useState(0);
   const { facilityId } = props;
-  const { username } = qParams;
 
   const { data: userListData, isLoading: userListLoading } = useQuery({
     queryKey: ["facilityUsers", facilityId, qParams],
     queryFn: query(routes.facility.getUsers, {
       pathParams: { facility_id: facilityId },
       queryParams: {
-        username,
+        username: qParams.username,
         limit: qParams.limit,
         offset: (qParams.page - 1) * qParams.limit,
       },
@@ -103,7 +102,7 @@ export default function FacilityUsers(props: { facilityId: number }) {
       <UserListView
         users={userListData?.results ?? []}
         onSearch={(username) => updateQuery({ username })}
-        searchValue={username || ""}
+        searchValue={qParams.username}
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
