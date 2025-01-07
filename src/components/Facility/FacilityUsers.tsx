@@ -14,18 +14,30 @@ import query from "@/Utils/request/query";
 
 export default function FacilityUsers(props: { facilityId: number }) {
   const { t } = useTranslation();
-  const { Pagination } = useFilters({
+  const { qParams, updateQuery, Pagination } = useFilters({
     limit: 18,
     cacheBlacklist: ["username"],
   });
-  const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState(0);
   const { facilityId } = props;
+  const { username } = qParams;
+
+  const handleSearch = (key: string, value: string) => {
+    updateQuery({
+      ...qParams,
+      [key]: value || undefined,
+    });
+  };
 
   const { data: userListData, isLoading: userListLoading } = useQuery({
-    queryKey: ["facilityUsers", facilityId],
+    queryKey: ["facilityUsers", facilityId, qParams],
     queryFn: query(routes.facility.getUsers, {
       pathParams: { facility_id: facilityId },
+      queryParams: {
+        username,
+        limit: qParams.limit || 18,
+        offset: ((qParams.page || 1) - 1) * (qParams.limit || 18),
+      },
     }),
     enabled: !!facilityId,
   });
@@ -33,21 +45,9 @@ export default function FacilityUsers(props: { facilityId: number }) {
   if (userListLoading) {
     return <div>Loading...</div>;
   }
-
   if (!userListData) {
     return <div>{t("no_users_found")}</div>;
   }
-
-  const filteredUsers = searchTerm
-    ? userListData.results.filter((user) => {
-        const searchString = searchTerm.toLowerCase();
-        return (
-          user.username?.toLowerCase().includes(searchString) ||
-          user.first_name?.toLowerCase().includes(searchString) ||
-          user.last_name?.toLowerCase().includes(searchString)
-        );
-      })
-    : userListData.results;
 
   return (
     <Page title={`${t("users")}`} hideBack={true} breadcrumbs={false}>
@@ -60,14 +60,16 @@ export default function FacilityUsers(props: { facilityId: number }) {
       />
 
       <UserListView
-        users={filteredUsers}
-        onSearch={(value) => setSearchTerm(value)}
-        searchValue={searchTerm}
+        users={userListData?.results ?? []}
+        onSearch={(username) => handleSearch("username", username)}
+        searchValue={username || ""}
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
 
-      <Pagination totalCount={userListData.count} />
+      {userListData.count > (qParams.limit || 18) && (
+        <Pagination totalCount={userListData.count} />
+      )}
     </Page>
   );
 }
