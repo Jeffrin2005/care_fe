@@ -37,7 +37,7 @@ export default function OrganizationFacilities({
         page: qParams.page,
         limit: resultsPerPage,
         offset: (qParams.page - 1) * resultsPerPage,
-        geo_organization: id,
+        organization: id,
         name: qParams.name,
         ...advancedFilter.filter,
       },
@@ -69,10 +69,14 @@ export default function OrganizationFacilities({
               })
             }
             className="max-w-sm"
+            data-cy="search-facility"
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div
+          className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+          data-cy="facility-cards"
+        >
           {isLoading ? (
             Array.from({ length: 6 }).map((_, i) => (
               <Card key={i} className="overflow-hidden">
