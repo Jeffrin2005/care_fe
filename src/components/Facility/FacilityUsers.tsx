@@ -25,10 +25,10 @@ export default function FacilityUsers(props: { facilityId: number }) {
   });
   const [activeTab, setActiveTab] = useState(0);
   const { facilityId } = props;
-  const { data: userListData, isLoading } = useQuery({
+  const { data: userListData, isLoading: userListLoading } = useQuery({
     queryKey: ["facilityUsers", facilityId, qParams],
-    queryFn: query(routes.facility.getUsers, {
-      pathParams: { facility_id: facilityId },
+    queryFn: query.debounced(routes.facility.getUsers, {
+      pathParams: { facility_id: facilityId.toString() },
       queryParams: {
         username: qParams.username,
         limit: qParams.limit,
@@ -38,16 +38,24 @@ export default function FacilityUsers(props: { facilityId: number }) {
     enabled: !!facilityId,
   });
 
-  if (isLoading) {
+  if (userListLoading) {
     return (
-      <Page title={t("users")} hideBack breadcrumbs={false}>
-        <CountBlock
-          text={t("total_users")}
-          count={0}
-          loading={true}
-          icon="d-people"
-          className="my-3 flex flex-col items-center sm:items-start"
-        />
+      <div className="px-6">
+        <Skeleton className="h-8 w-32 mb-4" />
+        <div className="flex items-center mb-4">
+          <Skeleton className="h-16 w-16 rounded-lg mr-3" />
+          <div>
+            <Skeleton className="h-4 w-14 mb-1" />
+            <Skeleton className="h-12 w-8" />
+          </div>
+        </div>
+        <div className="flex items-center justify-between mb-4">
+          <Skeleton className="h-10 w-72" />
+          <div className="flex space-x-2">
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i}>
@@ -62,13 +70,17 @@ export default function FacilityUsers(props: { facilityId: number }) {
                       </div>
                       <Skeleton className="h-6 w-16" />
                     </div>
+                    <div className="mt-2">
+                      <Skeleton className="h-4 w-20 mb-1" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
-      </Page>
+      </div>
     );
   }
 
@@ -77,14 +89,15 @@ export default function FacilityUsers(props: { facilityId: number }) {
   }
 
   return (
-    <Page title={t("users")} hideBack breadcrumbs={false}>
+    <Page title={`${t("users")}`} hideBack={true} breadcrumbs={false}>
       <CountBlock
         text={t("total_users")}
         count={userListData.count}
-        loading={false}
+        loading={userListLoading}
         icon="d-people"
         className="my-3 flex flex-col items-center sm:items-start"
       />
+
       <UserListView
         users={userListData?.results ?? []}
         onSearch={(username) => updateQuery({ username })}
@@ -92,6 +105,7 @@ export default function FacilityUsers(props: { facilityId: number }) {
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
+
       <Pagination totalCount={userListData.count} />
     </Page>
   );
