@@ -25,8 +25,7 @@ export default function FacilityUsers(props: { facilityId: number }) {
   });
   const [activeTab, setActiveTab] = useState(0);
   const { facilityId } = props;
-
-  const { data: userListData, isLoading: userListLoading } = useQuery({
+  const { data: userListData, isLoading } = useQuery({
     queryKey: ["facilityUsers", facilityId, qParams],
     queryFn: query(routes.facility.getUsers, {
       pathParams: { facility_id: facilityId },
@@ -39,20 +38,16 @@ export default function FacilityUsers(props: { facilityId: number }) {
     enabled: !!facilityId,
   });
 
-  if (!userListData) {
-    return <div>{t("no_users_found")}</div>;
-  }
-
-  return (
-    <Page title={`${t("users")}`} hideBack={true} breadcrumbs={false}>
-      <CountBlock
-        text={t("total_users")}
-        count={userListData.count}
-        loading={userListLoading}
-        icon="d-people"
-        className="my-3 flex flex-col items-center sm:items-start"
-      />
-      {userListLoading ? (
+  if (isLoading) {
+    return (
+      <Page title={t("users")} hideBack breadcrumbs={false}>
+        <CountBlock
+          text={t("total_users")}
+          count={0}
+          loading={true}
+          icon="d-people"
+          className="my-3 flex flex-col items-center sm:items-start"
+        />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i}>
@@ -73,15 +68,30 @@ export default function FacilityUsers(props: { facilityId: number }) {
             </Card>
           ))}
         </div>
-      ) : (
-        <UserListView
-          users={userListData?.results ?? []}
-          onSearch={(username) => updateQuery({ username })}
-          searchValue={qParams.username}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
-      )}
+      </Page>
+    );
+  }
+
+  if (!userListData) {
+    return <div>{t("no_users_found")}</div>;
+  }
+
+  return (
+    <Page title={t("users")} hideBack breadcrumbs={false}>
+      <CountBlock
+        text={t("total_users")}
+        count={userListData.count}
+        loading={false}
+        icon="d-people"
+        className="my-3 flex flex-col items-center sm:items-start"
+      />
+      <UserListView
+        users={userListData?.results ?? []}
+        onSearch={(username) => updateQuery({ username })}
+        searchValue={qParams.username}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
       <Pagination totalCount={userListData.count} />
     </Page>
   );
