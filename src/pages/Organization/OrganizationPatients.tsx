@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "raviger";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import RecordMeta from "@/CAREUI/display/RecordMeta";
 import CareIcon from "@/CAREUI/icons/CareIcon";
@@ -14,6 +16,7 @@ import useFilters from "@/hooks/useFilters";
 
 import query from "@/Utils/request/query";
 import { Patient } from "@/types/emr/newPatient";
+import { Organization } from "@/types/organization/organization";
 import organizationApi from "@/types/organization/organizationApi";
 
 import OrganizationLayout from "./components/OrganizationLayout";
@@ -24,22 +27,24 @@ interface Props {
 }
 
 export default function OrganizationPatients({ id, navOrganizationId }: Props) {
+  const { t } = useTranslation();
   const { qParams, Pagination, advancedFilter, resultsPerPage, updateQuery } =
     useFilters({ limit: 14, cacheBlacklist: ["patient"] });
+  const [organization, setOrganization] = useState<Organization | null>(null);
 
   const { data: patients, isLoading } = useQuery({
     queryKey: ["organizationPatients", id, qParams],
-    queryFn: query(organizationApi.listPatients, {
+    queryFn: query.debounced(organizationApi.listPatients, {
       pathParams: { id },
       queryParams: {
-        geo_organization: id,
+        ...(organization?.org_type === "govt" && { organization: id }),
         page: qParams.page,
         limit: resultsPerPage,
         offset: (qParams.page - 1) * resultsPerPage,
         ...advancedFilter.filter,
       },
     }),
-    enabled: !!id,
+    enabled: !!id && !!organization,
   });
 
   if (!id) {
@@ -47,10 +52,14 @@ export default function OrganizationPatients({ id, navOrganizationId }: Props) {
   }
 
   return (
-    <OrganizationLayout id={id} navOrganizationId={navOrganizationId}>
+    <OrganizationLayout
+      id={id}
+      navOrganizationId={navOrganizationId}
+      setOrganization={setOrganization}
+    >
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Patients</h2>
+          <h2 className="text-lg font-semibold">{t("patients")}</h2>
         </div>
 
         <SearchByMultipleFields
@@ -125,7 +134,7 @@ export default function OrganizationPatients({ id, navOrganizationId }: Props) {
           ) : patients?.results?.length === 0 ? (
             <Card className="col-span-full">
               <CardContent className="p-6 text-center text-gray-500">
-                No patients found.
+                {t("no_patients_found")}
               </CardContent>
             </Card>
           ) : (

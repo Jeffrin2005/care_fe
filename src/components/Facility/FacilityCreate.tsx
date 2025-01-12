@@ -10,12 +10,14 @@ import { navigate } from "raviger";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import * as z from "zod";
 
 import Card from "@/CAREUI/display/Card";
 import CareIcon from "@/CAREUI/icons/CareIcon";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -54,7 +56,6 @@ import {
   validatePincode,
 } from "@/common/validation";
 
-import * as Notification from "@/Utils/Notifications";
 import routes from "@/Utils/request/api";
 import query from "@/Utils/request/query";
 import request from "@/Utils/request/request";
@@ -109,6 +110,7 @@ export const FacilityCreate = (props: FacilityProps) => {
       .refine((val) => !val || validateLongitude(val), {
         message: t("longitude_invalid"),
       }),
+    is_public: z.boolean().default(false),
   });
 
   type FacilityFormValues = z.infer<typeof facilityFormSchema>;
@@ -134,24 +136,25 @@ export const FacilityCreate = (props: FacilityProps) => {
       phone_number: "",
       latitude: "",
       longitude: "",
+      is_public: false,
     },
   });
 
   // Update form when facility data is loaded
   useEffect(() => {
     if (facilityData) {
-      console.log(facilityData);
       form.reset({
         facility_type: facilityData.facility_type,
         name: facilityData.name,
         description: facilityData.description || "",
         features: facilityData.features || [],
-        pincode: facilityData.pincode,
+        pincode: facilityData.pincode?.toString() || "",
         geo_organization: facilityData.geo_organization,
         address: facilityData.address,
         phone_number: facilityData.phone_number,
         latitude: facilityData.latitude?.toString() || "",
         longitude: facilityData.longitude?.toString() || "",
+        is_public: facilityData.is_public,
       });
     }
   }, [facilityData, form]);
@@ -198,11 +201,11 @@ export const FacilityCreate = (props: FacilityProps) => {
           });
 
       if (res?.ok && responseData) {
-        Notification.Success({
-          msg: facilityId
-            ? "Facility updated successfully"
-            : "Facility added successfully",
-        });
+        toast.success(
+          facilityId
+            ? t("facility_updated_success")
+            : t("facility_added_successfully"),
+        );
         navigate(`/facility/${responseData.id}`);
       }
     } catch (error) {
@@ -456,6 +459,36 @@ export const FacilityCreate = (props: FacilityProps) => {
                           error={form.formState.errors.longitude?.message}
                         />
                       </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Visibility Settings */}
+              <div className="space-y-4 rounded-lg border p-4">
+                <h3 className="text-lg font-medium">Visibility Settings</h3>
+                <FormField
+                  control={form.control}
+                  name="is_public"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-muted/5">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-base">
+                          Make this facility public
+                        </FormLabel>
+                        <p className="text-sm text-muted-foreground">
+                          When enabled, this facility will be visible to the
+                          public and can be discovered by anyone using the
+                          platform
+                        </p>
+                      </div>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />

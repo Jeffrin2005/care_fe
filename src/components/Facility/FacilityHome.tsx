@@ -4,6 +4,7 @@ import { Hospital, MapPin, MoreVertical, Settings, Trash2 } from "lucide-react";
 import { navigate } from "raviger";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,6 @@ import useAuthUser from "@/hooks/useAuthUser";
 
 import { FACILITY_FEATURE_TYPES } from "@/common/constants";
 
-import * as Notification from "@/Utils/Notifications";
 import routes from "@/Utils/request/api";
 import query from "@/Utils/request/query";
 import request from "@/Utils/request/request";
@@ -38,7 +38,7 @@ import type {
   Organization,
   OrganizationParent,
 } from "@/types/organization/organization";
-import { getOrgLevelLabel } from "@/types/organization/organization";
+import { getOrgLabel } from "@/types/organization/organization";
 
 import type { UserModel } from "../Users/models";
 
@@ -77,24 +77,22 @@ const renderGeoOrganizations = (geoOrg: Organization) => {
 
   const parentDetails = orgParents.map((org) => {
     return {
-      label: getOrgLevelLabel(org.org_type, org.level_cache),
+      label: getOrgLabel(org.org_type, org.metadata),
       value: org.name,
     };
   });
 
-  return parentDetails
-    .reverse()
-    .concat({
-      label: getOrgLevelLabel(geoOrg.org_type, geoOrg.level_cache),
+  return [
+    {
+      label: getOrgLabel(geoOrg.org_type, geoOrg.metadata),
       value: geoOrg.name,
-    })
+    },
+  ]
+    .concat(parentDetails)
     .map((org, index) => (
-      <span key={org.value}>
-        <span className="text-muted-foreground">{org.value}</span>
-        {index < parentDetails.length - 1 && (
-          <span className="mx-2 text-muted-foreground/50">→</span>
-        )}
-      </span>
+      <div key={index}>
+        <span className="text-gray-500">{org.value}</span>
+      </div>
     ));
 };
 
@@ -124,9 +122,9 @@ export const FacilityHome = ({ facilityId }: Props) => {
       pathParams: { id: facilityId },
       onResponse: ({ res }) => {
         if (res?.ok) {
-          Notification.Success({
-            msg: t("deleted_successfully", { name: facilityData?.name }),
-          });
+          toast.success(
+            t("deleted_successfully", { name: facilityData?.name }),
+          );
         }
         navigate("/facility");
       },
@@ -147,7 +145,7 @@ export const FacilityHome = ({ facilityId }: Props) => {
         if (xhr.status === 200) {
           await sleep(1000);
           facilityFetch();
-          Notification.Success({ msg: "Cover image updated." });
+          toast.success(t("cover_image_updated"));
           setEditCoverImage(false);
         } else {
           onError();
@@ -165,7 +163,7 @@ export const FacilityHome = ({ facilityId }: Props) => {
       pathParams: { id: facilityId },
     });
     if (res?.ok) {
-      Notification.Success({ msg: "Cover image deleted" });
+      toast.success(t("cover_image_deleted"));
       facilityFetch();
       setEditCoverImage(false);
     } else {
@@ -192,7 +190,7 @@ export const FacilityHome = ({ facilityId }: Props) => {
           </span>
         }
         action="Delete"
-        variant="danger"
+        variant="destructive"
         show={openDeleteDialog}
         onClose={handleDeleteClose}
         onConfirm={handleDeleteSubmit}
@@ -284,7 +282,7 @@ export const FacilityHome = ({ facilityId }: Props) => {
             <div className="mt-2 space-y-2">
               <Card>
                 <CardContent>
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-12 mt-4">
+                  <div className="flex flex-col gap-4 items-start mt-4">
                     <div className="flex items-start gap-3">
                       <MapPin className="mt-1 h-5 w-5 flex-shrink-0 text-muted-foreground" />
                       <div>
