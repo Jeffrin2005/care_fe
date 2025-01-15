@@ -21,13 +21,7 @@ import useTanStackQueryInstead from "@/Utils/request/useQuery";
 import { getAuthorizationHeader } from "@/Utils/request/utils";
 import { formatDisplayName, sleep } from "@/Utils/utils";
 
-export default function UserAvatar({
-  username,
-  refetchUserData,
-}: {
-  username: string;
-  refetchUserData?: () => void;
-}) {
+export default function UserAvatar({ username }: { username: string }) {
   const { t } = useTranslation();
   const [editAvatar, setEditAvatar] = useState(false);
   const authUser = useAuthUser();
@@ -59,8 +53,7 @@ export default function UserAvatar({
       async (xhr: XMLHttpRequest) => {
         if (xhr.status === 200) {
           await sleep(1000);
-          refetchUserData?.();
-          await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+          queryClient.invalidateQueries({ queryKey: ["currentUser"] });
           toast.success(t("avatar_updated_success"));
           setEditAvatar(false);
         }
@@ -77,8 +70,7 @@ export default function UserAvatar({
       pathParams: { username },
     });
     if (res?.ok) {
-      refetchUserData?.();
-      await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
       toast.success(t("profile_picture_deleted"));
       setEditAvatar(false);
     } else {
