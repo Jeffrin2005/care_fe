@@ -1,12 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
+import { Building } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import CareIcon from "@/CAREUI/icons/CareIcon";
 
 import Autocomplete from "@/components/ui/autocomplete";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
 import routes from "@/Utils/request/api";
@@ -79,8 +78,6 @@ export default function FacilityOrganizationSelector(
     newLevels.push(selectedOrg);
     setSelectedLevels(newLevels);
     setSelectedOrganization(selectedOrg);
-
-    // Always update the selected value, regardless of children
     onChange(selectedOrg.id);
   };
 
@@ -113,83 +110,75 @@ export default function FacilityOrganizationSelector(
         {t("select_department")}
         {required && <span className="text-red-500">*</span>}
       </Label>
-      <div className="space-y-4">
-        {/* Selected Organization Display */}
+      <div className="space-y-3">
         {selectedOrganization && (
-          <div className="rounded-md border p-3 bg-gray-50">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">{selectedOrganization.name}</p>
-                {selectedOrganization.has_children && (
-                  <p className="text-sm text-gray-500">
-                    You can select a sub-department or keep this selection
-                  </p>
-                )}
-              </div>
+          <div className="flex items-center gap-3 rounded-md border border-sky-100 bg-sky-50/50 p-2.5">
+            <Building className="h-4 w-4 text-sky-600 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm text-sky-900 truncate">
+                {selectedOrganization.name}
+              </p>
               {selectedOrganization.has_children && (
-                <Badge variant="outline">Has Sub-departments</Badge>
+                <p className="text-xs text-sky-600">
+                  {t("Has Sub-departments")}
+                </p>
               )}
             </div>
           </div>
         )}
-
-        {/* Organization Hierarchy */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {selectedLevels.map((org, index) => (
-            <div key={org.id} className="flex items-center gap-2">
-              {index > 0 && (
-                <CareIcon
-                  icon="l-arrow-right"
-                  className="h-4 w-4 text-gray-400"
-                />
-              )}
-              <div className="flex-1">
-                <div className="flex gap-2">
-                  <div className="flex items-center h-9 w-full rounded-md border border-gray-200 bg-white px-3 py-1 text-base shadow-sm">
-                    {org.name}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEdit(index)}
-                    type="button"
-                  >
-                    <CareIcon icon="l-pen" className="h-4 w-4" />
-                  </Button>
+            <div key={org.id} className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-1">
+                {index > 0 && (
+                  <CareIcon
+                    icon="l-arrow-right"
+                    className="h-3.5 w-3.5 text-gray-400 flex-shrink-0"
+                  />
+                )}
+                <div
+                  className="flex items-center justify-between flex-1 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-sm shadow-sm cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleEdit(index)}
+                >
+                  <span className="truncate">{org.name}</span>
+                  <CareIcon
+                    icon="l-angle-down"
+                    className="h-3.5 w-3.5 ml-2 flex-shrink-0 text-gray-400"
+                  />
                 </div>
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Next Selection */}
-        {(!selectedLevels.length ||
-          selectedLevels[selectedLevels.length - 1]?.has_children) && (
-          <div className="flex items-center gap-2">
-            {selectedLevels.length > 0 && (
-              <CareIcon
-                icon="l-arrow-right"
-                className="h-4 w-4 text-gray-400"
-              />
-            )}
-            <div className="flex-1">
-              <Autocomplete
-                value=""
-                options={getOrganizationOptions(
-                  selectedLevels.length === 0
-                    ? getAllOrganizations?.results
-                    : currentLevelOrganizations?.results,
-                )}
-                onChange={(value: string) =>
-                  handleLevelChange(value, selectedLevels.length)
-                }
-                placeholder={`Select ${
-                  selectedLevels.length ? "sub-department" : "Department"
-                }...`}
-              />
+          {(!selectedLevels.length ||
+            selectedLevels[selectedLevels.length - 1]?.has_children) && (
+            <div className="flex items-center gap-1.5">
+              {selectedLevels.length > 0 && (
+                <CareIcon
+                  icon="l-arrow-right"
+                  className="h-3.5 w-3.5 text-gray-400 flex-shrink-0"
+                />
+              )}
+              <div className="flex-1">
+                <Autocomplete
+                  value=""
+                  options={getOrganizationOptions(
+                    selectedLevels.length === 0
+                      ? getAllOrganizations?.results
+                      : currentLevelOrganizations?.results,
+                  )}
+                  onChange={(value: string) =>
+                    handleLevelChange(value, selectedLevels.length)
+                  }
+                  placeholder={`${t("select")} ${
+                    selectedLevels.length
+                      ? t("sub department")
+                      : t("department")
+                  }`}
+                />
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </>
   );
