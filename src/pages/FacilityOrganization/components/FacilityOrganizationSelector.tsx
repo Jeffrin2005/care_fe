@@ -93,20 +93,62 @@ export default function FacilityOrganizationSelector(
   };
 
   const handleEdit = (level: number) => {
-    const newLevels = selectedLevels.slice(0, level);
-    setSelectedLevels(newLevels);
-    if (newLevels.length > 0) {
-      const lastOrg = newLevels[newLevels.length - 1];
-      setSelectedOrganization(lastOrg);
-      onChange(lastOrg.id);
-    } else {
-      setSelectedOrganization(null);
-    }
+    const orgList =
+      level === 0
+        ? getAllOrganizations?.results
+        : currentLevelOrganizations?.results;
+
+    const getDropdownLabel = () => {
+      if (level < selectedLevels.length) {
+        return selectedLevels[level].name;
+      }
+      return level === 0 ? t("select_department") : t("select sub department");
+    };
+
+    return (
+      <div className="group flex items-center gap-1.5">
+        {level > 0 && (
+          <CareIcon
+            icon="l-arrow-right"
+            className="h-3.5 w-3.5 text-gray-400 flex-shrink-0"
+          />
+        )}
+        <div className="flex-1 flex items-center gap-2">
+          <div className="flex-1">
+            <Autocomplete
+              value={selectedLevels[level]?.id}
+              options={getOrganizationOptions(orgList)}
+              onChange={(value) => handleLevelChange(value, level)}
+              placeholder={getDropdownLabel()}
+            />
+          </div>
+          {level > 0 && level < selectedLevels.length && (
+            <div
+              className="cursor-pointer p-1 hover:bg-gray-100 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => {
+                const newLevels = selectedLevels.slice(0, level);
+                setSelectedLevels(newLevels);
+                if (newLevels.length > 0) {
+                  const lastOrg = newLevels[newLevels.length - 1];
+                  setSelectedOrganization(lastOrg);
+                  onChange(lastOrg.id);
+                } else {
+                  setSelectedOrganization(null);
+                  onChange("");
+                }
+              }}
+            >
+              <CareIcon icon="l-pen" className="h-4 w-4 text-gray-500" />
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
     <>
-      <Label className="mb-2">
+      <Label className="mb-2 block">
         {t("select_department")}
         {required && <span className="text-red-500">*</span>}
       </Label>
@@ -120,7 +162,7 @@ export default function FacilityOrganizationSelector(
               </p>
               {selectedOrganization.has_children && (
                 <p className="text-xs text-sky-600">
-                  {t("Has Sub-departments")}
+                  {t("Has Sub Departments")}
                 </p>
               )}
             </div>
@@ -128,56 +170,11 @@ export default function FacilityOrganizationSelector(
         )}
         <div className="space-y-1.5">
           {selectedLevels.map((org, index) => (
-            <div key={org.id} className="flex items-center gap-1.5">
-              <div className="flex items-center gap-1.5 flex-1">
-                {index > 0 && (
-                  <CareIcon
-                    icon="l-arrow-right"
-                    className="h-3.5 w-3.5 text-gray-400 flex-shrink-0"
-                  />
-                )}
-                <div
-                  className="flex items-center justify-between flex-1 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-sm shadow-sm cursor-pointer hover:bg-gray-50"
-                  onClick={() => handleEdit(index)}
-                >
-                  <span className="truncate">{org.name}</span>
-                  <CareIcon
-                    icon="l-angle-down"
-                    className="h-3.5 w-3.5 ml-2 flex-shrink-0 text-gray-400"
-                  />
-                </div>
-              </div>
-            </div>
+            <div key={org.id}>{handleEdit(index)}</div>
           ))}
           {(!selectedLevels.length ||
-            selectedLevels[selectedLevels.length - 1]?.has_children) && (
-            <div className="flex items-center gap-1.5">
-              {selectedLevels.length > 0 && (
-                <CareIcon
-                  icon="l-arrow-right"
-                  className="h-3.5 w-3.5 text-gray-400 flex-shrink-0"
-                />
-              )}
-              <div className="flex-1">
-                <Autocomplete
-                  value=""
-                  options={getOrganizationOptions(
-                    selectedLevels.length === 0
-                      ? getAllOrganizations?.results
-                      : currentLevelOrganizations?.results,
-                  )}
-                  onChange={(value: string) =>
-                    handleLevelChange(value, selectedLevels.length)
-                  }
-                  placeholder={`${t("select")} ${
-                    selectedLevels.length
-                      ? t("sub department")
-                      : t("department")
-                  }`}
-                />
-              </div>
-            </div>
-          )}
+            selectedLevels[selectedLevels.length - 1]?.has_children) &&
+            handleEdit(selectedLevels.length)}
         </div>
       </div>
     </>
