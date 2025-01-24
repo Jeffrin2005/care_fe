@@ -64,12 +64,7 @@ export default function Autocomplete({
           data-cy={dataCy}
           onClick={() => setOpen(true)}
         >
-          <span
-            className={cn(
-              "truncate",
-              !selectedOption && "text-muted-foreground",
-            )}
-          >
+          <span className={cn("truncate", !selectedOption && "text-gray-500")}>
             {selectedOption ? selectedOption.label : placeholder}
           </span>
           <CaretSortIcon className="ml-2 size-4 shrink-0 opacity-50" />

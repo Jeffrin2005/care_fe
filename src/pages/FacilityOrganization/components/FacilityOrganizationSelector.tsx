@@ -162,7 +162,7 @@ export default function FacilityOrganizationSelector(
               </p>
               {selectedOrganization.has_children && (
                 <p className="text-xs text-sky-600">
-                  {t("Has Sub Departments")}
+                  {t("has_sub_departments")}
                 </p>
               )}
             </div>
