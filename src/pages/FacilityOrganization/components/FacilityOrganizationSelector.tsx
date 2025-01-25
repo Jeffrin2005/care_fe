@@ -102,7 +102,7 @@ export default function FacilityOrganizationSelector(
       if (level < selectedLevels.length) {
         return selectedLevels[level].name;
       }
-      return level === 0 ? t("select_department") : t("select sub department");
+      return level === 0 ? t("select_department") : t("select_sub_department");
     };
 
     return (
