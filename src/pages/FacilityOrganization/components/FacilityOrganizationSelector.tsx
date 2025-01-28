@@ -21,13 +21,11 @@ interface FacilityOrganizationSelectorProps {
   required?: boolean;
   facilityId: string;
 }
-
 interface AutoCompleteOption {
   label: string;
   value: string;
   hasChildren?: boolean;
 }
-
 export default function FacilityOrganizationSelector(
   props: FacilityOrganizationSelectorProps,
 ) {
@@ -38,7 +36,6 @@ export default function FacilityOrganizationSelector(
   );
   const [selectedOrganization, setSelectedOrganization] =
     useState<FacilityOrganization | null>(null);
-
   const { data: getAllOrganizations } = useQuery<FacilityOrganizationResponse>({
     queryKey: ["organizations-root"],
     queryFn: query(routes.facilityOrganization.list, {
@@ -48,7 +45,6 @@ export default function FacilityOrganizationSelector(
       },
     }),
   });
-
   const { data: currentLevelOrganizations } = useQuery<{
     results: FacilityOrganization[];
   }>({
@@ -64,23 +60,19 @@ export default function FacilityOrganizationSelector(
     }),
     enabled: selectedLevels.length > 0,
   });
-
   const handleLevelChange = (value: string, level: number) => {
     const orgList =
       level === 0
         ? getAllOrganizations?.results
         : currentLevelOrganizations?.results;
-
     const selectedOrg = orgList?.find((org) => org.id === value);
     if (!selectedOrg) return;
-
     const newLevels = selectedLevels.slice(0, level);
     newLevels.push(selectedOrg);
     setSelectedLevels(newLevels);
     setSelectedOrganization(selectedOrg);
     onChange(selectedOrg.id);
   };
-
   const getOrganizationOptions = (
     orgs?: FacilityOrganization[],
   ): AutoCompleteOption[] => {
@@ -91,13 +83,25 @@ export default function FacilityOrganizationSelector(
       hasChildren: org.has_children,
     }));
   };
-
   const handleEdit = (level: number) => {
+    const newLevels = selectedLevels.slice(0, level);
+    setSelectedLevels(newLevels);
+
+    if (newLevels.length > 0) {
+      const lastOrg = newLevels[newLevels.length - 1];
+      setSelectedOrganization(lastOrg);
+      onChange(lastOrg.id);
+    } else {
+      setSelectedOrganization(null);
+      onChange("");
+    }
+  };
+
+  const renderOrganizationLevel = (level: number) => {
     const orgList =
       level === 0
         ? getAllOrganizations?.results
         : currentLevelOrganizations?.results;
-
     const getDropdownLabel = () => {
       if (level < selectedLevels.length) {
         return selectedLevels[level].name;
@@ -125,18 +129,7 @@ export default function FacilityOrganizationSelector(
           {level > 0 && level < selectedLevels.length && (
             <div
               className="cursor-pointer p-1 hover:bg-gray-100 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={() => {
-                const newLevels = selectedLevels.slice(0, level);
-                setSelectedLevels(newLevels);
-                if (newLevels.length > 0) {
-                  const lastOrg = newLevels[newLevels.length - 1];
-                  setSelectedOrganization(lastOrg);
-                  onChange(lastOrg.id);
-                } else {
-                  setSelectedOrganization(null);
-                  onChange("");
-                }
-              }}
+              onClick={() => handleEdit(level)}
             >
               <CareIcon icon="l-pen" className="h-4 w-4 text-gray-500" />
             </div>
@@ -145,7 +138,6 @@ export default function FacilityOrganizationSelector(
       </div>
     );
   };
-
   return (
     <>
       <Label className="mb-2 block">
@@ -170,11 +162,11 @@ export default function FacilityOrganizationSelector(
         )}
         <div className="space-y-1.5">
           {selectedLevels.map((org, index) => (
-            <div key={org.id}>{handleEdit(index)}</div>
+            <div key={org.id}>{renderOrganizationLevel(index)}</div>
           ))}
           {(!selectedLevels.length ||
             selectedLevels[selectedLevels.length - 1]?.has_children) &&
-            handleEdit(selectedLevels.length)}
+            renderOrganizationLevel(selectedLevels.length)}
         </div>
       </div>
     </>
