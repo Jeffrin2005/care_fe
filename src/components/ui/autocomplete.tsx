@@ -62,7 +62,6 @@ export default function Autocomplete({
           className="w-full justify-between"
           disabled={disabled}
           data-cy={dataCy}
-          onClick={() => setOpen(true)}
         >
           <span className={cn("truncate", !selectedOption && "text-gray-500")}>
             {selectedOption ? selectedOption.label : placeholder}

@@ -119,21 +119,29 @@ export default function FacilityOrganizationSelector(
         )}
         <div className="flex-1 flex items-center gap-2">
           <div className="flex-1">
-            <Autocomplete
-              value={selectedLevels[level]?.id}
-              options={getOrganizationOptions(orgList)}
-              onChange={(value) => handleLevelChange(value, level)}
-              placeholder={getDropdownLabel()}
-            />
+            {level < selectedLevels.length &&
+            selectedLevels[level].has_children ? (
+              <div className="px-3 py-2 text-sm border rounded-md bg-white">
+                {selectedLevels[level].name}
+              </div>
+            ) : (
+              <Autocomplete
+                value={selectedLevels[level]?.id}
+                options={getOrganizationOptions(orgList)}
+                onChange={(value) => handleLevelChange(value, level)}
+                placeholder={getDropdownLabel()}
+              />
+            )}
           </div>
-          {level > 0 && level < selectedLevels.length && (
-            <div
-              className="cursor-pointer p-1 hover:bg-gray-100 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={() => handleEdit(level)}
-            >
-              <CareIcon icon="l-pen" className="h-4 w-4 text-gray-500" />
-            </div>
-          )}
+          {level < selectedLevels.length &&
+            selectedLevels[level].has_children && (
+              <div
+                className="cursor-pointer p-1 hover:bg-gray-100 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => handleEdit(level)}
+              >
+                <CareIcon icon="l-pen" className="h-4 w-4 text-gray-500" />
+              </div>
+            )}
         </div>
       </div>
     );
