@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { Building } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -21,11 +21,13 @@ interface FacilityOrganizationSelectorProps {
   required?: boolean;
   facilityId: string;
 }
+
 interface AutoCompleteOption {
   label: string;
   value: string;
   hasChildren?: boolean;
 }
+
 export default function FacilityOrganizationSelector(
   props: FacilityOrganizationSelectorProps,
 ) {
@@ -36,43 +38,45 @@ export default function FacilityOrganizationSelector(
   );
   const [selectedOrganization, setSelectedOrganization] =
     useState<FacilityOrganization | null>(null);
-  const { data: getAllOrganizations } = useQuery<FacilityOrganizationResponse>({
+
+  const { data: rootOrganizations } = useQuery<FacilityOrganizationResponse>({
     queryKey: ["organizations-root"],
     queryFn: query(routes.facilityOrganization.list, {
       pathParams: { facilityId },
-      queryParams: {
-        parent: "",
-      },
+      queryParams: { parent: "" },
     }),
   });
-  const { data: currentLevelOrganizations } = useQuery<{
-    results: FacilityOrganization[];
-  }>({
-    queryKey: [
-      "organizations-current",
-      selectedLevels[selectedLevels.length - 1]?.id,
-    ],
-    queryFn: query(routes.facilityOrganization.list, {
-      pathParams: { facilityId },
-      queryParams: {
-        parent: selectedLevels[selectedLevels.length - 1]?.id,
-      },
-    }),
-    enabled: selectedLevels.length > 0,
+
+  const organizationQueries = useQueries({
+    queries: selectedLevels.map((level, _index) => ({
+      queryKey: ["organizations", level.id],
+      queryFn: query(routes.facilityOrganization.list, {
+        pathParams: { facilityId },
+        queryParams: { parent: level.id },
+      }),
+      enabled: !!level.id,
+    })),
   });
+
   const handleLevelChange = (value: string, level: number) => {
-    const orgList =
-      level === 0
-        ? getAllOrganizations?.results
-        : currentLevelOrganizations?.results;
+    let orgList: FacilityOrganization[] | undefined;
+
+    if (level === 0) {
+      orgList = rootOrganizations?.results;
+    } else if (level - 1 < organizationQueries.length) {
+      orgList = organizationQueries[level - 1].data?.results;
+    }
+
     const selectedOrg = orgList?.find((org) => org.id === value);
     if (!selectedOrg) return;
+
     const newLevels = selectedLevels.slice(0, level);
     newLevels.push(selectedOrg);
     setSelectedLevels(newLevels);
     setSelectedOrganization(selectedOrg);
     onChange(selectedOrg.id);
   };
+
   const getOrganizationOptions = (
     orgs?: FacilityOrganization[],
   ): AutoCompleteOption[] => {
@@ -83,6 +87,7 @@ export default function FacilityOrganizationSelector(
       hasChildren: org.has_children,
     }));
   };
+
   const handleEdit = (level: number) => {
     const newLevels = selectedLevels.slice(0, level);
     setSelectedLevels(newLevels);
@@ -98,10 +103,14 @@ export default function FacilityOrganizationSelector(
   };
 
   const renderOrganizationLevel = (level: number) => {
-    const orgList =
-      level === 0
-        ? getAllOrganizations?.results
-        : currentLevelOrganizations?.results;
+    let orgList: FacilityOrganization[] | undefined;
+
+    if (level === 0) {
+      orgList = rootOrganizations?.results;
+    } else if (level - 1 < organizationQueries.length) {
+      orgList = organizationQueries[level - 1].data?.results;
+    }
+
     const getDropdownLabel = () => {
       if (level < selectedLevels.length) {
         return selectedLevels[level].name;
@@ -119,33 +128,26 @@ export default function FacilityOrganizationSelector(
         )}
         <div className="flex-1 flex items-center gap-2">
           <div className="flex-1">
-            {level < selectedLevels.length &&
-            selectedLevels[level].has_children ? (
-              <div className="px-3 py-2 text-sm border rounded-md bg-white">
-                {selectedLevels[level].name}
-              </div>
-            ) : (
-              <Autocomplete
-                value={selectedLevels[level]?.id}
-                options={getOrganizationOptions(orgList)}
-                onChange={(value) => handleLevelChange(value, level)}
-                placeholder={getDropdownLabel()}
-              />
-            )}
+            <Autocomplete
+              value={selectedLevels[level]?.id}
+              options={getOrganizationOptions(orgList)}
+              onChange={(value) => handleLevelChange(value, level)}
+              placeholder={getDropdownLabel()}
+            />
           </div>
-          {level < selectedLevels.length &&
-            selectedLevels[level].has_children && (
-              <div
-                className="cursor-pointer p-1 hover:bg-gray-100 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => handleEdit(level)}
-              >
-                <CareIcon icon="l-pen" className="h-4 w-4 text-gray-500" />
-              </div>
-            )}
+          {level > 0 && level < selectedLevels.length && (
+            <div
+              className="cursor-pointer p-1 hover:bg-gray-100 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => handleEdit(level)}
+            >
+              <CareIcon icon="l-pen" className="h-4 w-4 text-gray-500" />
+            </div>
+          )}
         </div>
       </div>
     );
   };
+
   return (
     <>
       <Label className="mb-2 block">
