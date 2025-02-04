@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Command,
-  CommandDialog,
   CommandEmpty,
   CommandGroup,
   CommandInput,
@@ -18,8 +17,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
-import useBreakpoints from "@/hooks/useBreakpoints";
 
 interface AutoCompleteOption {
   label: string;
@@ -52,76 +49,7 @@ export default function Autocomplete({
   "data-cy": dataCy,
 }: AutocompleteProps) {
   const [open, setOpen] = React.useState(false);
-  const isMobile = useBreakpoints({ default: true, sm: false });
   const selectedOption = options.find((option) => option.value === value);
-
-  const commandContent = (
-    <>
-      <CommandInput
-        placeholder="Search option..."
-        disabled={disabled}
-        onValueChange={onSearch}
-        className="outline-none border-none ring-0 shadow-none"
-      />
-      <CommandList>
-        <CommandEmpty>{noOptionsMessage}</CommandEmpty>
-        <CommandGroup>
-          {options.map((option) => (
-            <CommandItem
-              key={option.value}
-              value={option.label}
-              onSelect={(v) => {
-                const currentValue =
-                  options.find(
-                    (option) => option.label.toLowerCase() === v.toLowerCase(),
-                  )?.value || "";
-                onChange(currentValue);
-                setOpen(false);
-              }}
-            >
-              <CheckIcon
-                className={cn(
-                  "mr-2 h-4 w-4",
-                  value === option.value ? "opacity-100" : "opacity-0",
-                )}
-              />
-              {option.label}
-            </CommandItem>
-          ))}
-        </CommandGroup>
-      </CommandList>
-    </>
-  );
-
-  const buttonContent = (
-    <span className={cn("truncate", !selectedOption && "text-gray-500")}>
-      {selectedOption ? selectedOption.label : placeholder}
-    </span>
-  );
-
-  if (isMobile) {
-    return (
-      <>
-        <Button
-          title={selectedOption?.label}
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between"
-          disabled={disabled}
-          data-cy={dataCy}
-          type="button"
-          onClick={() => setOpen(true)}
-        >
-          {buttonContent}
-          <CaretSortIcon className="ml-2 size-4 shrink-0 opacity-50" />
-        </Button>
-        <CommandDialog open={open} onOpenChange={setOpen}>
-          {commandContent}
-        </CommandDialog>
-      </>
-    );
-  }
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal={true}>
@@ -135,7 +63,9 @@ export default function Autocomplete({
           disabled={disabled}
           data-cy={dataCy}
         >
-          {buttonContent}
+          <span className={cn("truncate", !selectedOption && "text-gray-500")}>
+            {selectedOption ? selectedOption.label : placeholder}
+          </span>
           <CaretSortIcon className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -143,7 +73,42 @@ export default function Autocomplete({
         className="sm:w-full p-0 pointer-events-auto w-[var(--radix-popover-trigger-width)]"
         align={align}
       >
-        <Command>{commandContent}</Command>
+        <Command>
+          <CommandInput
+            placeholder="Search option..."
+            disabled={disabled}
+            onValueChange={onSearch}
+            className="outline-none border-none ring-0 shadow-none"
+          />
+          <CommandList>
+            <CommandEmpty>{noOptionsMessage}</CommandEmpty>
+            <CommandGroup>
+              {options.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  value={option.label}
+                  onSelect={(v) => {
+                    const currentValue =
+                      options.find(
+                        (option) =>
+                          option.label.toLowerCase() === v.toLowerCase(),
+                      )?.value || "";
+                    onChange(currentValue);
+                    setOpen(false);
+                  }}
+                >
+                  <CheckIcon
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === option.value ? "opacity-100" : "opacity-0",
+                    )}
+                  />
+                  {option.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
       </PopoverContent>
     </Popover>
   );
