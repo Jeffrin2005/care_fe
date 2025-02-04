@@ -91,7 +91,6 @@ export default function FacilityOrganizationSelector(
   const handleEdit = (level: number) => {
     const newLevels = selectedLevels.slice(0, level);
     setSelectedLevels(newLevels);
-
     if (newLevels.length > 0) {
       const lastOrg = newLevels[newLevels.length - 1];
       setSelectedOrganization(lastOrg);
@@ -117,7 +116,6 @@ export default function FacilityOrganizationSelector(
       }
       return level === 0 ? t("select_department") : t("select_sub_department");
     };
-
     return (
       <div className="group flex items-center gap-1.5">
         {level > 0 && (

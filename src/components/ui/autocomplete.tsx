@@ -22,7 +22,6 @@ interface AutoCompleteOption {
   label: string;
   value: string;
 }
-
 interface AutocompleteProps {
   options: AutoCompleteOption[];
   value: string;
@@ -35,7 +34,6 @@ interface AutocompleteProps {
   popoverClassName?: string;
   "data-cy"?: string;
 }
-
 export default function Autocomplete({
   options,
   value,
@@ -62,6 +60,7 @@ export default function Autocomplete({
           className="w-full justify-between"
           disabled={disabled}
           data-cy={dataCy}
+          onClick={() => setOpen(true)}
         >
           <span className={cn("truncate", !selectedOption && "text-gray-500")}>
             {selectedOption ? selectedOption.label : placeholder}
