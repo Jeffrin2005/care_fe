@@ -1,6 +1,8 @@
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
 import * as React from "react";
+
 import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -16,11 +18,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+
 import useBreakpoints from "@/hooks/useBreakpoints";
+
 interface AutoCompleteOption {
   label: string;
   value: string;
 }
+
 interface AutocompleteProps {
   options: AutoCompleteOption[];
   value: string;
@@ -33,6 +38,7 @@ interface AutocompleteProps {
   popoverClassName?: string;
   "data-cy"?: string;
 }
+
 export default function Autocomplete({
   options,
   value,
@@ -86,6 +92,7 @@ export default function Autocomplete({
       </CommandList>
     </>
   );
+
   if (isMobile) {
     return (
       <>
@@ -117,31 +124,34 @@ export default function Autocomplete({
       </>
     );
   }
-const selectedOption = options.find((option) => option.value === value); return (
-  <Popover open={open} onOpenChange={setOpen} modal={true}>
-    <PopoverTrigger asChild className={popoverClassName}>
-      <Button
-        title={selectedOption?.label}
-        variant="outline"
-        role="combobox"
-        aria-expanded={open}
-        className="w-full justify-between"
-        disabled={disabled}
-        data-cy={dataCy}
-        onClick={() => setOpen(true)}  >
-        <span className={cn("truncate", !selectedOption && "text-gray-500")}>
-          {selectedOption ? selectedOption.label : placeholder}
-        </span>
-        <CaretSortIcon className="ml-2 size-4 shrink-0 opacity-50" />
-      </Button>
-    </PopoverTrigger>
-    <PopoverContent
-      className="sm:w-full p-0 pointer-events-auto w-[var(--radix-popover-trigger-width)]"
-      align={align}
-    >
-    <Command>{commandContent}</Command>
 
-  </PopoverContent>
-</Popover>
-);
+  const selectedOption = options.find((option) => option.value === value);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen} modal={true}>
+      <PopoverTrigger asChild className={popoverClassName}>
+        <Button
+          title={selectedOption?.label}
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+          disabled={disabled}
+          data-cy={dataCy}
+          onClick={() => setOpen(true)}
+        >
+          <span className={cn("truncate", !selectedOption && "text-gray-500")}>
+            {selectedOption ? selectedOption.label : placeholder}
+          </span>
+          <CaretSortIcon className="ml-2 size-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="sm:w-full p-0 pointer-events-auto w-[var(--radix-popover-trigger-width)]"
+        align={align}
+      >
+        <Command>{commandContent}</Command>
+      </PopoverContent>
+    </Popover>
+  );
 }

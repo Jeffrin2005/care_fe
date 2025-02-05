@@ -14,17 +14,20 @@ import {
   FacilityOrganization,
   FacilityOrganizationResponse,
 } from "@/types/facilityOrganization/facilityOrganization";
+
 interface FacilityOrganizationSelectorProps {
   value?: string;
   onChange: (value: string) => void;
   required?: boolean;
   facilityId: string;
 }
+
 interface AutoCompleteOption {
   label: string;
   value: string;
   hasChildren?: boolean;
 }
+
 export default function FacilityOrganizationSelector(
   props: FacilityOrganizationSelectorProps,
 ) {
@@ -83,6 +86,7 @@ export default function FacilityOrganizationSelector(
       hasChildren: org.has_children,
     }));
   };
+
   const handleEdit = (level: number) => {
     const newLevels = selectedLevels.slice(0, level);
     setSelectedLevels(newLevels);
@@ -111,6 +115,7 @@ export default function FacilityOrganizationSelector(
       }
       return level === 0 ? t("select_department") : t("select_sub_department");
     };
+
     return (
       <div className="group flex items-center gap-1.5">
         {level > 0 && (
