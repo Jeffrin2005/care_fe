@@ -14,20 +14,17 @@ import {
   FacilityOrganization,
   FacilityOrganizationResponse,
 } from "@/types/facilityOrganization/facilityOrganization";
-
 interface FacilityOrganizationSelectorProps {
   value?: string;
   onChange: (value: string) => void;
   required?: boolean;
   facilityId: string;
 }
-
 interface AutoCompleteOption {
   label: string;
   value: string;
   hasChildren?: boolean;
 }
-
 export default function FacilityOrganizationSelector(
   props: FacilityOrganizationSelectorProps,
 ) {
@@ -69,7 +66,6 @@ export default function FacilityOrganizationSelector(
 
     const selectedOrg = orgList?.find((org) => org.id === value);
     if (!selectedOrg) return;
-
     const newLevels = selectedLevels.slice(0, level);
     newLevels.push(selectedOrg);
     setSelectedLevels(newLevels);
@@ -87,7 +83,6 @@ export default function FacilityOrganizationSelector(
       hasChildren: org.has_children,
     }));
   };
-
   const handleEdit = (level: number) => {
     const newLevels = selectedLevels.slice(0, level);
     setSelectedLevels(newLevels);
