@@ -50,6 +50,7 @@ export default function Autocomplete({
   "data-cy": dataCy,
 }: AutocompleteProps) {
   const [open, setOpen] = React.useState(false);
+
   const isMobile = useBreakpoints({ default: true, sm: false });
 
   const commandContent = (
@@ -121,7 +122,7 @@ export default function Autocomplete({
       </>
     );
   }
-
+const selectedOption = options.find((option) => option.value === value);
   return (
     <Popover open={open} onOpenChange={setOpen} modal={true}>
       <PopoverTrigger asChild className={popoverClassName}>
@@ -145,6 +146,8 @@ export default function Autocomplete({
         className="sm:w-full p-0 pointer-events-auto w-[var(--radix-popover-trigger-width)]"
         align={align}
       >
+
+
         <Command>{commandContent}</Command>
 
       </PopoverContent>
