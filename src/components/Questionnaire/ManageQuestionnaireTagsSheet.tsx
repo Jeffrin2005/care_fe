@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Hash, Loader2, Plus, X } from "lucide-react";
+import { Hash, Loader2, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -13,16 +13,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -51,11 +49,11 @@ export default function ManageQuestionnaireTagsSheet({
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedSlugs, setSelectedSlugs] = useState<string[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newTagName, setNewTagName] = useState("");
   const [newTagSlug, setNewTagSlug] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: availableTags, isLoading } = useQuery({
     queryKey: ["questionnaire_tags"],
@@ -91,7 +89,6 @@ export default function ManageQuestionnaireTagsSheet({
     },
   });
 
-  // Initialize selected slugs from questionnaire tags
   useEffect(() => {
     if (questionnaire.tags) {
       setSelectedSlugs(questionnaire.tags.map((tag) => tag.slug));
@@ -130,10 +127,6 @@ export default function ManageQuestionnaireTagsSheet({
     new Set(questionnaire.tags.map((tag) => tag.slug)).size !==
       new Set(selectedSlugs).size ||
     !questionnaire.tags.every((tag) => selectedSlugs.includes(tag.slug));
-
-  const filteredTags = availableTags?.results.filter((tag) =>
-    tag.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -180,41 +173,56 @@ export default function ManageQuestionnaireTagsSheet({
             </div>
           </div>
 
-          {/* Tag Selector */}
+          {/* Tag Selector Dropdown */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium">{t("add_tags")}</h3>
-            <Command className="rounded-lg border shadow-md">
-              <CommandInput
-                placeholder={t("search_tags")}
-                onValueChange={setSearchQuery}
-              />
-              <CommandList>
-                <CommandEmpty>{t("no_tags_found")}</CommandEmpty>
-                <CommandGroup>
-                  {isLoading ? (
-                    <div className="flex items-center justify-center py-6">
-                      <Loader2 className="h-6 w-6 animate-spin" />
-                    </div>
-                  ) : (
-                    filteredTags?.map((tag) => (
-                      <CommandItem
-                        key={tag.slug}
-                        value={tag.slug}
-                        onSelect={() => handleToggleTag(tag.slug)}
-                      >
-                        <div className="flex flex-1 items-center gap-2">
-                          <Hash className="h-4 w-4" />
-                          <span>{tag.name}</span>
-                        </div>
-                        {selectedSlugs.includes(tag.slug) && (
-                          <Check className="h-4 w-4" />
-                        )}
-                      </CommandItem>
-                    ))
-                  )}
-                </CommandGroup>
-              </CommandList>
-            </Command>
+            <Select
+              onValueChange={(value) => {
+                handleToggleTag(value);
+                setSearchQuery("");
+              }}
+              value=""
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={t("select a tag")} />
+              </SelectTrigger>
+              <SelectContent>
+                <div className="p-2">
+                  <Input
+                    placeholder={t("search_tags")}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="mb-2"
+                  />
+                  <div className="max-h-60 overflow-y-auto">
+                    {isLoading ? (
+                      <div className="flex items-center justify-center py-6">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                      </div>
+                    ) : (
+                      availableTags?.results
+                        .filter(
+                          (tag) =>
+                            !selectedSlugs.includes(tag.slug) &&
+                            tag.name
+                              .toLowerCase()
+                              .includes(searchQuery.toLowerCase()),
+                        )
+                        .map((tag) => (
+                          <div
+                            key={tag.slug}
+                            className="flex items-center gap-2 p-2 hover:bg-accent cursor-pointer"
+                            onClick={() => handleToggleTag(tag.slug)}
+                          >
+                            <Hash className="h-4 w-4" />
+                            {tag.name}
+                          </div>
+                        ))
+                    )}
+                  </div>
+                </div>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Create New Tag */}

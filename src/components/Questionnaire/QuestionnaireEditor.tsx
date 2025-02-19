@@ -1,7 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { t } from "i18next";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import { Building, Check, Loader2, X } from "lucide-react";
+import { Building, ChevronDown, Loader2, X } from "lucide-react";
 import { useNavigate } from "raviger";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -17,14 +16,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -92,7 +83,6 @@ export default function QuestionnaireEditor({ id }: QuestionnaireEditorProps) {
     new Set(),
   );
   const [selectedOrgIds, setSelectedOrgIds] = useState<string[]>([]);
-  const [orgSearchQuery, setOrgSearchQuery] = useState("");
 
   const {
     data: initialQuestionnaire,
@@ -108,11 +98,11 @@ export default function QuestionnaireEditor({ id }: QuestionnaireEditorProps) {
 
   const { data: availableOrganizations, isLoading: isLoadingOrganizations } =
     useQuery({
-      queryKey: ["organizations", orgSearchQuery],
+      queryKey: ["organizations", id],
       queryFn: query(organizationApi.list, {
         queryParams: {
           org_type: "role",
-          name: orgSearchQuery || undefined,
+          name: id || undefined,
         },
       }),
     });
@@ -445,45 +435,53 @@ export default function QuestionnaireEditor({ id }: QuestionnaireEditorProps) {
                           )}
                         </div>
 
-                        <Command className="rounded-lg border shadow-md">
-                          <CommandInput
-                            placeholder="Search organizations..."
-                            onValueChange={setOrgSearchQuery}
-                          />
-                          <CommandList>
-                            <CommandEmpty>No organizations found.</CommandEmpty>
-                            <CommandGroup>
-                              {isLoadingOrganizations ? (
-                                <div className="flex items-center justify-center py-6">
-                                  <Loader2 className="h-6 w-6 animate-spin" />
-                                </div>
-                              ) : (
-                                availableOrganizations?.results.map((org) => (
-                                  <CommandItem
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-between"
+                            >
+                              <span>{t("Select Organizations")}</span>
+                              <ChevronDown className="h-4 w-4 opacity-50" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-full min-w-[200px] max-h-[300px] overflow-auto">
+                            {isLoadingOrganizations ? (
+                              <div className="flex items-center justify-center py-6">
+                                <Loader2 className="h-6 w-6 animate-spin" />
+                              </div>
+                            ) : availableOrganizations?.results.filter(
+                                (org) => !selectedOrgIds.includes(org.id),
+                              ).length === 0 ? (
+                              <div className="text-center py-4 text-sm text-gray-500">
+                                {t("No more organizations available")}
+                              </div>
+                            ) : (
+                              availableOrganizations?.results
+                                .filter(
+                                  (org) => !selectedOrgIds.includes(org.id),
+                                )
+                                .map((org) => (
+                                  <DropdownMenuItem
                                     key={org.id}
-                                    value={org.id}
-                                    onSelect={() =>
-                                      handleToggleOrganization(org.id)
-                                    }
+                                    onSelect={(e) => {
+                                      e.preventDefault();
+                                      handleToggleOrganization(org.id);
+                                    }}
+                                    className="flex items-center gap-2"
                                   >
-                                    <div className="flex flex-1 items-center gap-2">
-                                      <Building className="h-4 w-4" />
-                                      <span>{org.name}</span>
-                                      {org.description && (
-                                        <span className="text-xs text-gray-500">
-                                          - {org.description}
-                                        </span>
-                                      )}
-                                    </div>
-                                    {selectedOrgIds.includes(org.id) && (
-                                      <Check className="h-4 w-4" />
+                                    <Building className="h-4 w-4" />
+                                    <span>{org.name}</span>
+                                    {org.description && (
+                                      <span className="text-xs text-gray-500">
+                                        - {org.description}
+                                      </span>
                                     )}
-                                  </CommandItem>
+                                  </DropdownMenuItem>
                                 ))
-                              )}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     )}
                   </div>
@@ -781,7 +779,7 @@ function QuestionEditor({
                   onMoveUp?.();
                 }}
               >
-                <ChevronUp className="mr-2 h-4 w-4" />
+                <ChevronDown className="mr-2 h-4 w-4" />
                 Move Up
               </DropdownMenuItem>
             )}
