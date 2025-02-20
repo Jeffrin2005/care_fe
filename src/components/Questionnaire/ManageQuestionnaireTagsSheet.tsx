@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Hash, Loader2, Plus, X } from "lucide-react";
+import { ChevronDown, Hash, Loader2, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -13,14 +13,20 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Sheet,
   SheetContent,
@@ -56,8 +62,10 @@ export default function ManageQuestionnaireTagsSheet({
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: availableTags, isLoading } = useQuery({
-    queryKey: ["questionnaire_tags"],
-    queryFn: query(questionnaireApi.tags.list),
+    queryKey: ["questionnaire_tags", searchQuery],
+    queryFn: query(questionnaireApi.tags.list, {
+      queryParams: searchQuery !== "" ? { name: searchQuery } : undefined,
+    }),
     enabled: open,
   });
 
@@ -167,7 +175,7 @@ export default function ManageQuestionnaireTagsSheet({
                   </Button>
                 </Badge>
               ))}
-              {!isLoading && (!selectedTags || selectedTags.length === 0) && (
+              {(!selectedTags || selectedTags.length === 0) && (
                 <p className="text-sm text-gray-500">{t("no_tags_selected")}</p>
               )}
             </div>
@@ -176,53 +184,47 @@ export default function ManageQuestionnaireTagsSheet({
           {/* Tag Selector Dropdown */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium">{t("add_tags")}</h3>
-            <Select
-              onValueChange={(value) => {
-                handleToggleTag(value);
-                setSearchQuery("");
-              }}
-              value=""
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={t("select a tag")} />
-              </SelectTrigger>
-              <SelectContent>
-                <div className="p-2">
-                  <Input
-                    placeholder={t("search_tags")}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  <span>{t("Select a tag")}</span>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-0" align="start">
+                <Command className="rounded-lg border-none">
+                  <CommandInput
+                    placeholder={t("Search tags...")}
+                    className="h-9 px-3 border-none focus:ring-0"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="mb-2"
+                    onValueChange={setSearchQuery}
                   />
-                  <div className="max-h-60 overflow-y-auto">
+                  <CommandEmpty className="py-2 px-3">
+                    {t("No tags found")}
+                  </CommandEmpty>
+                  <CommandGroup className="py-2">
                     {isLoading ? (
                       <div className="flex items-center justify-center py-6">
                         <Loader2 className="h-6 w-6 animate-spin" />
                       </div>
                     ) : (
                       availableTags?.results
-                        .filter(
-                          (tag) =>
-                            !selectedSlugs.includes(tag.slug) &&
-                            tag.name
-                              .toLowerCase()
-                              .includes(searchQuery.toLowerCase()),
-                        )
+                        .filter((tag) => !selectedSlugs.includes(tag.slug))
                         .map((tag) => (
-                          <div
+                          <CommandItem
                             key={tag.slug}
-                            className="flex items-center gap-2 p-2 hover:bg-accent cursor-pointer"
-                            onClick={() => handleToggleTag(tag.slug)}
+                            onSelect={() => handleToggleTag(tag.slug)}
+                            className="mx-0 rounded-none px-3 py-1.5"
                           >
-                            <Hash className="h-4 w-4" />
-                            {tag.name}
-                          </div>
+                            <Hash className="h-4 w-4 shrink-0 mr-2" />
+                            <span>{tag.name}</span>
+                          </CommandItem>
                         ))
                     )}
-                  </div>
-                </div>
-              </SelectContent>
-            </Select>
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* Create New Tag */}

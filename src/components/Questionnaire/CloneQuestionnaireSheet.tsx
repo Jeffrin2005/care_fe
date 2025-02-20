@@ -7,13 +7,19 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Sheet,
   SheetContent,
@@ -185,50 +191,45 @@ export default function CloneQuestionnaireSheet({
               </div>
 
               {/* Organization Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+              <Popover>
+                <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-between">
-                    <span>Select Organizations</span>
+                    <span>{t("Select Organizations")}</span>
                     <ChevronDown className="h-4 w-4 opacity-50" />
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-full min-w-[200px] max-h-[300px] overflow-auto">
-                  {isLoadingOrganizations ? (
-                    <div className="flex items-center justify-center py-6">
-                      <Loader2 className="h-6 w-6 animate-spin" />
-                    </div>
-                  ) : availableOrganizations?.results.filter(
-                      (org) => !selectedIds.includes(org.id),
-                    ).length === 0 ? (
-                    <div className="text-center py-4 text-sm text-gray-500">
-                      {t("No more organizations available")}
-                    </div>
-                  ) : (
-                    availableOrganizations?.results
-                      .filter((org) => !selectedIds.includes(org.id))
-                      .map((org) => (
-                        <DropdownMenuItem
-                          key={org.id}
-                          onSelect={(e) => {
-                            e.preventDefault();
-                            handleToggleOrganization(org.id);
-                          }}
-                          className="flex items-center gap-2"
-                        >
-                          <div className="flex items-center flex-1 gap-2">
-                            <Building className="h-4 w-4" />
-                            <span>{org.name}</span>
-                            {org.description && (
-                              <span className="text-xs text-gray-500">
-                                - {org.description}
-                              </span>
-                            )}
-                          </div>
-                        </DropdownMenuItem>
-                      ))
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </PopoverTrigger>
+                <PopoverContent className="w-[300px] p-0" align="start">
+                  <Command className="rounded-lg border-none">
+                    <CommandInput
+                      placeholder={t("Search organizations...")}
+                      className="h-9 px-3 border-none focus:ring-0"
+                    />
+                    <CommandEmpty className="py-2 px-3">
+                      {t("No organizations found")}
+                    </CommandEmpty>
+                    <CommandGroup className="py-2">
+                      {isLoadingOrganizations ? (
+                        <div className="flex items-center justify-center py-4">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </div>
+                      ) : (
+                        availableOrganizations?.results
+                          .filter((org) => !selectedIds.includes(org.id))
+                          .map((org) => (
+                            <CommandItem
+                              key={org.id}
+                              onSelect={() => handleToggleOrganization(org.id)}
+                              className="px-2 py-1.5 text-sm"
+                            >
+                              <Building className="h-4 w-4 shrink-0 mr-2" />
+                              <span className="truncate">{org.name}</span>
+                            </CommandItem>
+                          ))
+                      )}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </div>

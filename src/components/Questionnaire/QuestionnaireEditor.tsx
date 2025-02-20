@@ -17,6 +17,12 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
+  Command,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -25,6 +31,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -50,7 +61,6 @@ import {
   StructuredQuestionType,
 } from "@/types/questionnaire/question";
 import {
-  QuestionStatus,
   QuestionnaireDetail,
   SubjectType,
 } from "@/types/questionnaire/questionnaire";
@@ -342,21 +352,41 @@ export default function QuestionnaireEditor({ id }: QuestionnaireEditorProps) {
                 <CardContent className="space-y-4">
                   <div>
                     <Label htmlFor="status">Status</Label>
-                    <Select
-                      value={questionnaire.status}
-                      onValueChange={(val: QuestionStatus) =>
-                        updateQuestionnaireField("status", val)
-                      }
-                    >
-                      <SelectTrigger id="status">
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="retired">Retired</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between"
+                        >
+                          <span>{questionnaire.status || "Select status"}</span>
+                          <ChevronDown className="h-4 w-4 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[200px] p-0" align="start">
+                        <Command>
+                          <CommandInput
+                            placeholder="Search..."
+                            className="h-8 w-full"
+                          />
+                          <CommandGroup>
+                            <CommandItem
+                              onSelect={() =>
+                                updateQuestionnaireField("status", "active")
+                              }
+                            >
+                              Active
+                            </CommandItem>
+                            <CommandItem
+                              onSelect={() =>
+                                updateQuestionnaireField("status", "draft")
+                              }
+                            >
+                              Draft
+                            </CommandItem>
+                          </CommandGroup>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
 
                   <div>
@@ -435,8 +465,8 @@ export default function QuestionnaireEditor({ id }: QuestionnaireEditorProps) {
                           )}
                         </div>
 
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
+                        <Popover>
+                          <PopoverTrigger asChild>
                             <Button
                               variant="outline"
                               className="w-full justify-between"
@@ -444,44 +474,45 @@ export default function QuestionnaireEditor({ id }: QuestionnaireEditorProps) {
                               <span>{t("Select Organizations")}</span>
                               <ChevronDown className="h-4 w-4 opacity-50" />
                             </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent className="w-full min-w-[200px] max-h-[300px] overflow-auto">
-                            {isLoadingOrganizations ? (
-                              <div className="flex items-center justify-center py-6">
-                                <Loader2 className="h-6 w-6 animate-spin" />
-                              </div>
-                            ) : availableOrganizations?.results.filter(
-                                (org) => !selectedOrgIds.includes(org.id),
-                              ).length === 0 ? (
-                              <div className="text-center py-4 text-sm text-gray-500">
-                                {t("No more organizations available")}
-                              </div>
-                            ) : (
-                              availableOrganizations?.results
-                                .filter(
-                                  (org) => !selectedOrgIds.includes(org.id),
-                                )
-                                .map((org) => (
-                                  <DropdownMenuItem
-                                    key={org.id}
-                                    onSelect={(e) => {
-                                      e.preventDefault();
-                                      handleToggleOrganization(org.id);
-                                    }}
-                                    className="flex items-center gap-2"
-                                  >
-                                    <Building className="h-4 w-4" />
-                                    <span>{org.name}</span>
-                                    {org.description && (
-                                      <span className="text-xs text-gray-500">
-                                        - {org.description}
-                                      </span>
-                                    )}
-                                  </DropdownMenuItem>
-                                ))
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="w-[200px] p-0"
+                            align="start"
+                          >
+                            <Command className="rounded-lg border-none">
+                              <CommandInput
+                                placeholder={t("Search organizations...")}
+                                className="h-8 w-full border-none focus:ring-0 text-sm"
+                              />
+                              <CommandGroup className="py-2">
+                                {isLoadingOrganizations ? (
+                                  <div className="flex items-center justify-center py-4">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  </div>
+                                ) : (
+                                  availableOrganizations?.results
+                                    .filter(
+                                      (org) => !selectedOrgIds.includes(org.id),
+                                    )
+                                    .map((org) => (
+                                      <CommandItem
+                                        key={org.id}
+                                        onSelect={() =>
+                                          handleToggleOrganization(org.id)
+                                        }
+                                        className="px-2 py-1.5 text-sm"
+                                      >
+                                        <Building className="h-4 w-4 shrink-0 mr-2" />
+                                        <span className="truncate">
+                                          {org.name}
+                                        </span>
+                                      </CommandItem>
+                                    ))
+                                )}
+                              </CommandGroup>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     )}
                   </div>
