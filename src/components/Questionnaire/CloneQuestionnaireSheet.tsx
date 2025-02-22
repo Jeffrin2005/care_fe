@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { t } from "i18next";
-import { Building, ChevronDown, Loader2, X } from "lucide-react";
+import { Building, ChevronDown, Loader2 } from "lucide-react";
 import { useNavigate } from "raviger";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -151,7 +151,7 @@ export default function CloneQuestionnaireSheet({
                   ))
               ) : (
                 <p className="text-sm text-gray-500">
-                  {t("No organizations selected")}
+                  No organizations selected
                 </p>
               )}
             </div>
@@ -161,35 +161,6 @@ export default function CloneQuestionnaireSheet({
           <div className="space-y-4">
             <h3 className="text-sm font-medium">Add Organizations</h3>
             <div className="space-y-4">
-              {/* Selected Organizations Display */}
-              <div className="flex flex-wrap gap-2">
-                {selectedIds.length > 0 ? (
-                  availableOrganizations?.results
-                    .filter((org) => selectedIds.includes(org.id))
-                    .map((org) => (
-                      <Badge
-                        key={org.id}
-                        variant="secondary"
-                        className="flex items-center gap-1"
-                      >
-                        {org.name}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-4 w-4 p-0 hover:bg-transparent"
-                          onClick={() => handleToggleOrganization(org.id)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </Badge>
-                    ))
-                ) : (
-                  <p className="text-sm text-gray-500">
-                    {t("No organizations selected")}
-                  </p>
-                )}
-              </div>
-
               {/* Organization Dropdown */}
               <Popover>
                 <PopoverTrigger asChild>
@@ -245,7 +216,7 @@ export default function CloneQuestionnaireSheet({
                 setOpen(false);
               }}
             >
-              {t("Cancel")}
+              Cancel
             </Button>
             <Button
               onClick={handleClone}
@@ -256,10 +227,10 @@ export default function CloneQuestionnaireSheet({
               {isCloning ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t("Cloning...")}
+                  Cloning...
                 </>
               ) : (
-                t("Clone")
+                "Clone"
               )}
             </Button>
           </div>
