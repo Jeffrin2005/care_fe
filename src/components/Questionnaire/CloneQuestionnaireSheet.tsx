@@ -133,30 +133,6 @@ export default function CloneQuestionnaireSheet({
             {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
 
-          {/* Selected Organizations */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium">Selected Organizations</h3>
-            <div className="flex flex-wrap gap-2">
-              {selectedIds.length > 0 ? (
-                availableOrganizations?.results
-                  .filter((org) => selectedIds.includes(org.id))
-                  .map((org) => (
-                    <Badge
-                      key={org.id}
-                      variant="secondary"
-                      className="flex items-center gap-1"
-                    >
-                      {org.name}
-                    </Badge>
-                  ))
-              ) : (
-                <p className="text-sm text-gray-500">
-                  {t("No organizations selected")}
-                </p>
-              )}
-            </div>
-          </div>
-
           {/* Organization Selector */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium">Add Organizations</h3>
