@@ -305,7 +305,7 @@ function OrganizationSelector({
             <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[300px] p-0" align="start">
+        <PopoverContent className="w-full max-w-[300px] p-0" align="start">
           <Command className="rounded-lg border-none">
             <CommandInput
               placeholder={t("Search organizations...")}
@@ -421,7 +421,7 @@ function TagSelector({
             <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[300px] p-0" align="start">
+        <PopoverContent className="w-full max-w-[300px] p-0" align="start">
           <Command className="rounded-lg border-none">
             <CommandInput
               placeholder={t("Search tags...")}
