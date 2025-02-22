@@ -135,7 +135,7 @@ export default function CloneQuestionnaireSheet({
 
           {/* Organization Selector */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium">Add Organizations</h3>
+            <h3 className="text-sm font-medium">Selected Organizations</h3>
             <div className="space-y-4">
               {/* Selected Organizations Display */}
               <div className="flex flex-wrap gap-2">
