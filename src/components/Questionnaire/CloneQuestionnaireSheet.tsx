@@ -3,6 +3,7 @@ import { t } from "i18next";
 import { Building, ChevronDown, Loader2, X } from "lucide-react";
 import { useNavigate } from "raviger";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -70,12 +71,11 @@ export default function CloneQuestionnaireSheet({
       navigate(`/admin/questionnaire/${data.slug}`);
       setOpen(false);
     },
-    onError: (error: any) => {
-      if (error.response?.status === 400) {
-        setError("This slug is already in use. Please choose a different one.");
-      } else {
-        setError("Failed to clone questionnaire. Please try again.");
-      }
+    onError: (error) => {
+      const errorData = error.cause as { errors: { msg: string }[] };
+      errorData.errors.forEach((er) => {
+        toast.error(er.msg);
+      });
     },
   });
 
@@ -204,7 +204,7 @@ export default function CloneQuestionnaireSheet({
                       placeholder={t("Search organizations...")}
                       className="h-9 px-3 border-none focus:ring-0"
                     />
-                    <CommandEmpty className="py-2 px-3">
+                    <CommandEmpty className="py-2 px-3 text-center">
                       {t("No organizations found")}
                     </CommandEmpty>
                     <CommandGroup className="py-2">
@@ -234,7 +234,7 @@ export default function CloneQuestionnaireSheet({
           </div>
         </div>
 
-        <SheetFooter className="absolute bottom-0 left-0 right-0 p-4 border-t bg-background">
+        <SheetFooter className="absolute bottom-0 left-0 right-0 p-4 border-t">
           <div className="flex w-full justify-end gap-4">
             <Button
               variant="outline"
@@ -249,7 +249,9 @@ export default function CloneQuestionnaireSheet({
             </Button>
             <Button
               onClick={handleClone}
-              disabled={isCloning || !newSlug.trim()}
+              disabled={
+                isCloning || !newSlug.trim() || selectedIds.length === 0
+              }
             >
               {isCloning ? (
                 <>
