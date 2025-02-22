@@ -63,7 +63,10 @@ export default function ManageQuestionnaireTagsSheet({
 
   const { data: availableTags, isLoading } = useQuery({
     queryKey: ["questionnaire_tags", searchQuery],
-    queryFn: query(questionnaireApi.tags.list, {
+: query(questionnaireApi.tags.list, {
+
+    queryFn: query.debounced(questionnaireApi.tags.list, {
+
       queryParams: searchQuery !== "" ? { name: searchQuery } : undefined,
     }),
     enabled: open,
@@ -75,7 +78,7 @@ export default function ManageQuestionnaireTagsSheet({
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["questionnaire", questionnaire.slug],
+        queryKey: ["questionnaireDetail", questionnaire.slug],
       });
       toast.success("Tags updated successfully");
       setOpen(false);
@@ -184,44 +187,54 @@ export default function ManageQuestionnaireTagsSheet({
           {/* Tag Selector Dropdown */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium">{t("add_tags")}</h3>
-            <Popover>
+
+            <Popover modal={true}>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  <span>{t("Select a tag")}</span>
-                  <ChevronDown className="h-4 w-4 opacity-50" />
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <Hash className="mr-2 h-4 w-4" />
+                  <span>{t("search_tags")}</span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[300px] p-0" align="start">
-                <Command className="rounded-lg border-none">
+              <PopoverContent
+                className="p-0 w-[var(--radix-popover-trigger-width)]"
+                align="start"
+              >
+                <Command className="rounded-lg" filter={() => 1}>
                   <CommandInput
-                    placeholder={t("Search tags...")}
-                    className="h-9 px-3 border-none focus:ring-0"
-                    value={searchQuery}
+                    placeholder={t("search_tags")}
                     onValueChange={setSearchQuery}
+                    className="outline-none border-none ring-0 shadow-none"
                   />
-                  <CommandEmpty className="py-2 px-3">
-                    {t("No tags found")}
-                  </CommandEmpty>
-                  <CommandGroup className="py-2">
-                    {isLoading ? (
-                      <div className="flex items-center justify-center py-6">
-                        <Loader2 className="h-6 w-6 animate-spin" />
-                      </div>
-                    ) : (
-                      availableTags?.results
-                        .filter((tag) => !selectedSlugs.includes(tag.slug))
-                        .map((tag) => (
+                  <CommandList>
+                    <CommandEmpty>{t("no_tags_found")}</CommandEmpty>
+                    <CommandGroup>
+                      {isLoading ? (
+                        <div className="flex items-center justify-center py-6">
+                          <Loader2 className="h-6 w-6 animate-spin" />
+                        </div>
+                      ) : (
+                        availableTags?.results?.map((tag) => (
                           <CommandItem
                             key={tag.slug}
+                            value={tag.slug}
                             onSelect={() => handleToggleTag(tag.slug)}
-                            className="mx-0 rounded-none px-3 py-1.5"
                           >
-                            <Hash className="h-4 w-4 shrink-0 mr-2" />
-                            <span>{tag.name}</span>
+                            <div className="flex flex-1 items-center gap-2">
+                              <Hash className="h-4 w-4" />
+                              <span>{tag.name}</span>
+                            </div>
+                            {selectedSlugs.includes(tag.slug) && (
+                              <Check className="h-4 w-4" />
+                            )}
                           </CommandItem>
                         ))
-                    )}
-                  </CommandGroup>
+                      )}
+                    </CommandGroup>
+                  </CommandList>
+
                 </Command>
               </PopoverContent>
             </Popover>
@@ -286,7 +299,7 @@ export default function ManageQuestionnaireTagsSheet({
           </Collapsible>
         </div>
 
-        <SheetFooter className="absolute bottom-0 left-0 right-0 p-4 border-t bg-background">
+        <SheetFooter className="absolute bottom-0 left-0 right-0 p-4 border-t">
           <div className="flex w-full justify-end gap-4">
             <Button
               variant="outline"
