@@ -178,6 +178,17 @@ const SearchByMultipleFields: React.FC<SearchByMultipleFieldsProps> = ({
   }, [focusedIndex, open, handleOptionChange, options]);
 
   useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [selectedOptionIndex]);
+
+  useEffect(() => {
+    if (selectedOption.value !== searchValue) {
+      setSearchValue(selectedOption.value || "");
+    }
+  }, [selectedOption.value]);
+  useEffect(() => {
     if (selectedOption.value !== searchValue) {
       onSearch(selectedOption.key, searchValue);
     }
