@@ -47,6 +47,7 @@ interface SearchByMultipleFieldsProps {
   clearSearch?: { value: boolean; params?: string[] };
   enableOptionButtons?: boolean;
   onFieldChange?: (options: SearchOption) => void;
+  autoFocus?: boolean;
 }
 
 const KeyboardShortcutHint = ({ open }: { open: boolean }) => {
@@ -90,6 +91,7 @@ const SearchByMultipleFields: React.FC<SearchByMultipleFieldsProps> = ({
   clearSearch,
   onFieldChange,
   enableOptionButtons = true,
+  autoFocus = false,
 }) => {
   const { t } = useTranslation();
   const [selectedOptionIndex, setSelectedOptionIndex] =
@@ -152,7 +154,9 @@ const SearchByMultipleFields: React.FC<SearchByMultipleFieldsProps> = ({
           setSearchValue("");
         }
       }
-
+      if (e.key === "Backspace" && searchValue.length === 0) {
+        e.preventDefault();
+      }
       if (open) {
         if (e.key === "ArrowDown") {
           setFocusedIndex((prevIndex) =>
@@ -173,14 +177,19 @@ const SearchByMultipleFields: React.FC<SearchByMultipleFieldsProps> = ({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [focusedIndex, open, handleOptionChange, options]);
+  }, [focusedIndex, open, handleOptionChange, options, searchValue]);
+
+  useEffect(() => {
+    if (autoFocus) {
+      inputRef.current?.focus();
+    }
+  }, [autoFocus, open, selectedOptionIndex]);
 
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
     }
   }, [selectedOptionIndex]);
-
   useEffect(() => {
     if (selectedOption.value !== searchValue) {
       setSearchValue(selectedOption.value || "");
