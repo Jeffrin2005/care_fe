@@ -155,6 +155,10 @@ const SearchByMultipleFields: React.FC<SearchByMultipleFieldsProps> = ({
         }
       }
 
+      if (e.key === "Backspace" && searchValue.length === 0) {
+        e.preventDefault();
+      }
+
       if (open) {
         if (e.key === "ArrowDown") {
           setFocusedIndex((prevIndex) =>
@@ -175,7 +179,7 @@ const SearchByMultipleFields: React.FC<SearchByMultipleFieldsProps> = ({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [focusedIndex, open, handleOptionChange, options]);
+  }, [focusedIndex, open, handleOptionChange, options, searchValue]);
 
   useEffect(() => {
     if (inputRef.current) {
@@ -188,11 +192,18 @@ const SearchByMultipleFields: React.FC<SearchByMultipleFieldsProps> = ({
       setSearchValue(selectedOption.value || "");
     }
   }, [selectedOption.value]);
+
   useEffect(() => {
     if (selectedOption.value !== searchValue) {
       onSearch(selectedOption.key, searchValue);
     }
   }, [searchValue]);
+
+  useEffect(() => {
+    if (autoFocus) {
+      inputRef.current?.focus();
+    }
+  }, [autoFocus, open, selectedOptionIndex]);
 
   const renderSearchInput = useMemo(() => {
     switch (selectedOption.type) {
@@ -230,12 +241,6 @@ const SearchByMultipleFields: React.FC<SearchByMultipleFieldsProps> = ({
         );
     }
   }, [selectedOption, searchValue, t, inputClassName, open]);
-
-  useEffect(() => {
-    if (autoFocus) {
-      inputRef.current?.focus();
-    }
-  }, [autoFocus, open, selectedOptionIndex]);
 
   return (
     <div
