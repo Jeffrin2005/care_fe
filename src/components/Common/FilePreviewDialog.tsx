@@ -125,6 +125,32 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     setScale((prevScale) => Math.max(prevScale - 0.25, 0.5));
   };
 
+  const handleRotate = () => {
+    setFileState((prev: any) => {
+      const newRotation = (prev.rotation + 90) % 360;
+      return {
+        ...prev,
+        rotation: newRotation,
+      };
+    });
+  };
+
+  function getRotationClass(rotation: number) {
+    const normalizedRotation = rotation % 360;
+    switch (normalizedRotation) {
+      case 0:
+        return "";
+      case 90:
+        return "rotate-90";
+      case 180:
+        return "rotate-180";
+      case 270:
+        return "-rotate-90";
+      default:
+        return "";
+    }
+  }
+
   const fileName = file_state?.name
     ? file_state.name + "." + file_state.extension
     : "";
@@ -156,23 +182,6 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     setScale(1);
     onClose?.();
   };
-
-  const handleRotate = (rotation: number) => {
-    setFileState((prev: any) => ({
-      ...prev,
-      rotation: prev.rotation + rotation,
-    }));
-  };
-
-  function getRotationClass(rotation: number) {
-    let normalizedRotation = ((rotation % 360) + 360) % 360;
-    if (normalizedRotation > 180) {
-      normalizedRotation -= 360;
-    }
-    return normalizedRotation === -90
-      ? "-rotate-90"
-      : `rotate-${normalizedRotation}`;
-  }
 
   useKeyboardShortcut(["ArrowLeft"], () => index > 0 && handleNext(index - 1));
   useKeyboardShortcut(
@@ -327,18 +336,7 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
                         handleZoomOut,
                         file_state.zoom === 1,
                       ],
-                      [
-                        t("rotate_left"),
-                        "l-corner-up-left",
-                        () => handleRotate(-90),
-                        false,
-                      ],
-                      [
-                        t("rotate_right"),
-                        "l-corner-up-right",
-                        () => handleRotate(90),
-                        false,
-                      ],
+                      [t("rotate"), "l-corner-down-left", handleRotate, false],
                     ].map((button, index) => (
                       <Button
                         variant="ghost"
