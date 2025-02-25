@@ -130,9 +130,9 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     setScale((prevScale) => Math.max(prevScale - 0.25, 0.5));
   };
 
-  const handleRotate = (angle: number) => {
+  const handleRotate = () => {
     setFileState((prev: any) => {
-      const newRotation = (prev.rotation + angle + 360) % 360;
+      const newRotation = (prev.rotation + 90) % 360;
       return {
         ...prev,
         rotation: newRotation,
@@ -382,18 +382,7 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
                         handleZoomOut,
                         file_state.zoom === 1,
                       ],
-                      [
-                        t("rotate_left"),
-                        "l-corner-up-left",
-                        () => handleRotate(-90),
-                        false,
-                      ],
-                      [
-                        t("rotate_right"),
-                        "l-corner-up-right",
-                        () => handleRotate(90),
-                        false,
-                      ],
+                      [t("rotate"), "l-corner-down-left", handleRotate, false],
                     ].map((button, index) => (
                       <Button
                         variant="ghost"
