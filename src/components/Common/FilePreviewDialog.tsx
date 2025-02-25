@@ -8,6 +8,7 @@ import {
   Suspense,
   lazy,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
@@ -100,6 +101,10 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
   const [numPages, setNumPages] = useState(1);
   const [index, setIndex] = useState<number>(currentIndex);
   const [scale, setScale] = useState(1.0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (uploadedFiles && show) {
@@ -125,9 +130,9 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     setScale((prevScale) => Math.max(prevScale - 0.25, 0.5));
   };
 
-  const handleRotate = () => {
+  const handleRotate = (angle: number) => {
     setFileState((prev: any) => {
-      const newRotation = (prev.rotation + 90) % 360;
+      const newRotation = (prev.rotation + angle + 360) % 360;
       return {
         ...prev,
         rotation: newRotation,
@@ -188,6 +193,31 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     ["ArrowRight"],
     () => index < (uploadedFiles?.length || 0) - 1 && handleNext(index + 1),
   );
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!file_state.isImage) return;
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setPosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y,
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
 
   return (
     <Dialog open={show} onOpenChange={(open) => !open && handleClose()}>
@@ -260,15 +290,31 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
                   <CareIcon icon="l-arrow-left" className="h-4 w-4" />
                 </Button>
               )}
-              <div className="flex h-[75vh] w-full items-center justify-center overflow-scroll rounded-lg border border-secondary-200">
+              <div
+                ref={containerRef}
+                className="flex h-[75vh] w-full items-center justify-center overflow-hidden rounded-lg border border-secondary-200"
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseLeave}
+                style={{ cursor: isDragging ? "grabbing" : "grab" }}
+              >
                 {file_state.isImage ? (
-                  <img
-                    src={fileUrl}
-                    alt="file"
-                    className={`h-full w-full object-contain ${
-                      zoom_values[file_state.zoom - 1]
-                    } ${getRotationClass(file_state.rotation)}`}
-                  />
+                  <div
+                    style={{
+                      transform: `translate(${position.x}px, ${position.y}px)`,
+                      transition: isDragging ? "none" : "transform 0.1s",
+                    }}
+                  >
+                    <img
+                      src={fileUrl}
+                      alt="file"
+                      className={`h-full w-full object-contain select-none
+                        ${zoom_values[file_state.zoom - 1]}
+                        ${getRotationClass(file_state.rotation)}`}
+                      draggable={false}
+                    />
+                  </div>
                 ) : file_state.extension === "pdf" ? (
                   <Suspense fallback={<CircularProgress />}>
                     <PDFViewer
@@ -336,7 +382,18 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
                         handleZoomOut,
                         file_state.zoom === 1,
                       ],
-                      [t("rotate"), "l-corner-down-left", handleRotate, false],
+                      [
+                        t("rotate_left"),
+                        "l-corner-up-left",
+                        () => handleRotate(-90),
+                        false,
+                      ],
+                      [
+                        t("rotate_right"),
+                        "l-corner-up-right",
+                        () => handleRotate(90),
+                        false,
+                      ],
                     ].map((button, index) => (
                       <Button
                         variant="ghost"
