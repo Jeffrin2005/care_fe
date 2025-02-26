@@ -100,12 +100,19 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
   const [numPages, setNumPages] = useState(1);
   const [index, setIndex] = useState<number>(currentIndex);
   const [scale, setScale] = useState(1.0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (uploadedFiles && show) {
       setIndex(currentIndex);
     }
   }, [uploadedFiles, show, currentIndex]);
+
+  useEffect(() => {
+    setPosition({ x: 0, y: 0 });
+  }, [index, show]);
 
   const handleZoomIn = () => {
     const checkFull = file_state.zoom === zoom_values.length;
@@ -173,6 +180,49 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
       ? "-rotate-90"
       : `rotate-${normalizedRotation}`;
   }
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!file_state.isImage) return;
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setPosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y,
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!file_state.isImage) return;
+    setIsDragging(true);
+    setDragStart({
+      x: e.touches[0].clientX - position.x,
+      y: e.touches[0].clientY - position.y,
+    });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    setPosition({
+      x: e.touches[0].clientX - dragStart.x,
+      y: e.touches[0].clientY - dragStart.y,
+    });
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
 
   useKeyboardShortcut(["ArrowLeft"], () => index > 0 && handleNext(index - 1));
   useKeyboardShortcut(
@@ -251,15 +301,36 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
                   <CareIcon icon="l-arrow-left" className="h-4 w-4" />
                 </Button>
               )}
-              <div className="flex h-[75vh] w-full items-center justify-center overflow-scroll rounded-lg border border-secondary-200">
+              <div
+                className="flex h-[75vh] w-full items-center justify-center overflow-hidden rounded-lg border border-secondary-200"
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                style={{
+                  cursor: isDragging ? "grabbing" : "grab",
+                  touchAction: "none",
+                }}
+              >
                 {file_state.isImage ? (
-                  <img
-                    src={fileUrl}
-                    alt="file"
-                    className={`h-full w-full object-contain ${
-                      zoom_values[file_state.zoom - 1]
-                    } ${getRotationClass(file_state.rotation)}`}
-                  />
+                  <div
+                    style={{
+                      transform: `translate(${position.x}px, ${position.y}px)`,
+                      transition: isDragging ? "none" : "transform 0.1s",
+                    }}
+                  >
+                    <img
+                      src={fileUrl}
+                      alt="file"
+                      className={`h-full w-full select-none object-contain
+                        ${zoom_values[file_state.zoom - 1]}
+                        ${getRotationClass(file_state.rotation)}`}
+                      draggable={false}
+                    />
+                  </div>
                 ) : file_state.extension === "pdf" ? (
                   <Suspense fallback={<CircularProgress />}>
                     <PDFViewer
