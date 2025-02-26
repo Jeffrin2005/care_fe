@@ -121,7 +121,8 @@ const CountrySelect = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[90vw] sm:w-[300px] p-2 sm:p-0"
+        className="p-2 sm:p-0"
+        style={{ width: "var(--radix-popover-trigger-width)" }}
         align="start"
         sideOffset={5}
       >
