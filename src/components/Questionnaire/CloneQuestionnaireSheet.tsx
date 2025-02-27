@@ -249,10 +249,10 @@ export default function CloneQuestionnaireSheet({
               {isCloning ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t("cloning")}
+                  Cloning...
                 </>
               ) : (
-                t("clone")
+                "Clone"
               )}
             </Button>
           </div>
