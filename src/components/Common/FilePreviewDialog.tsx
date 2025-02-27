@@ -94,9 +94,11 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
   const [numPages, setNumPages] = useState(1);
   const [index, setIndex] = useState<number>(currentIndex);
   const [scale, setScale] = useState(1.0);
+
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
 
   useEffect(() => {
     if (uploadedFiles && show) {
@@ -107,6 +109,7 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
   useEffect(() => {
     setPosition({ x: 0, y: 0 });
   }, [index, show]);
+
 
   const handleZoomIn = () => {
     const checkFull = file_state.zoom === zoom_values.length;
