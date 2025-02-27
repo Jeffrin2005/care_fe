@@ -9,7 +9,7 @@ import {
   Tags,
   ViewIcon,
 } from "lucide-react";
-import { Building, Loader2, X } from "lucide-react";
+import { Building, Check, Loader2, X } from "lucide-react";
 import { useNavigate } from "raviger";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -33,6 +33,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   DropdownMenu,
@@ -250,8 +251,8 @@ function OrganizationSelector({
             </Badge>
           ))}
           {(!organizations?.results || organizations.results.length === 0) && (
-            <p className="text-xs text-gray-500 text-center">
-              {t("No organizations found")}
+            <p className="text-sm text-gray-500">
+              {t("no_organizations_selected")}
             </p>
           )}
         </div>
@@ -292,49 +293,60 @@ function OrganizationSelector({
               </Badge>
             ))
         ) : (
-          <p className="text-xs text-gray-500 text-center">
-            {t("No organizations found")}
+          <p className="text-sm text-gray-500">
+            {t("no_organizations_selected")}
           </p>
         )}
       </div>
 
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="w-full justify-between">
-            <span>{t("Select Organizations")}</span>
-            <ChevronDown className="h-4 w-4 opacity-50" />
+          <Button
+            variant="outline"
+            role="combobox"
+            className="w-full justify-between"
+          >
+            <span className="truncate">{t("select_organizations")}</span>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full max-w-[300px] p-0" align="start">
-          <Command className="rounded-lg border-none">
+        <PopoverContent className="w-full p-0" align="start">
+          <Command>
             <CommandInput
-              placeholder={t("Search organizations...")}
+              placeholder={t("search_organizations")}
               onValueChange={selection.setSearchQuery}
-              className="h-9 px-3 border-none focus:ring-0"
             />
-            <CommandEmpty className="py-2 px-3 text-xs text-center">
-              {t("No organizations found")}
-            </CommandEmpty>
-            <CommandGroup className="py-2">
-              {selection.isLoading ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                </div>
-              ) : (
-                selection.available?.results
-                  .filter((org) => !selection.selectedIds.includes(org.id))
-                  .map((org) => (
+            <CommandList>
+              <CommandEmpty>{t("no_organizations_found")}</CommandEmpty>
+              <CommandGroup>
+                {selection.isLoading ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : (
+                  selection.available?.results.map((org) => (
                     <CommandItem
                       key={org.id}
+                      value={org.id}
                       onSelect={() => selection.onToggle(org.id)}
-                      className="px-2 py-1.5 text-sm"
                     >
-                      <Building className="h-4 w-4 shrink-0 mr-2" />
-                      <span className="truncate">{org.name}</span>
+                      <div className="flex flex-1 items-center gap-2">
+                        <Building className="h-4 w-4" />
+                        <span>{org.name}</span>
+                        {org.description && (
+                          <span className="text-xs text-gray-500">
+                            - {org.description}
+                          </span>
+                        )}
+                      </div>
+                      {selection.selectedIds.includes(org.id) && (
+                        <Check className="h-4 w-4" />
+                      )}
                     </CommandItem>
                   ))
-              )}
-            </CommandGroup>
+                )}
+              </CommandGroup>
+            </CommandList>
           </Command>
         </PopoverContent>
       </Popover>
@@ -366,9 +378,7 @@ function TagSelector({
             </Badge>
           ))}
           {questionnaire.tags.length === 0 && (
-            <p className="text-xs text-gray-500 text-center">
-              {t("No tags found")}
-            </p>
+            <p className="text-sm text-gray-500">{t("no_tags_selected")}</p>
           )}
         </div>
         <ManageQuestionnaireTagsSheet
@@ -408,49 +418,53 @@ function TagSelector({
               </Badge>
             ))
         ) : (
-          <p className="text-xs text-gray-500 text-center">
-            {t("no_tags_selected")}
-          </p>
+          <p className="text-sm text-gray-500">{t("no_tags_selected")}</p>
         )}
       </div>
 
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="w-full justify-between">
-            <span>{t("Select Tags")}</span>
-            <ChevronDown className="h-4 w-4 opacity-50" />
+          <Button
+            variant="outline"
+            role="combobox"
+            className="w-full justify-between"
+          >
+            <span className="truncate">{t("select_tags")}</span>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full max-w-[300px] p-0" align="start">
-          <Command className="rounded-lg border-none">
+        <PopoverContent className="w-full p-0" align="start">
+          <Command>
             <CommandInput
-              placeholder={t("Search tags...")}
+              placeholder={t("search_tags")}
               onValueChange={selection.setSearchQuery}
-              className="h-9 px-3 border-none focus:ring-0"
             />
-            <CommandEmpty className="py-2 px-3 text-xs text-center">
-              {t("No tags found")}
-            </CommandEmpty>
-            <CommandGroup className="py-2">
-              {selection.isLoading ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                </div>
-              ) : (
-                selection.available?.results
-                  .filter((tag) => !selection.selectedIds.includes(tag.id))
-                  .map((tag) => (
+            <CommandList>
+              <CommandEmpty>{t("no_tags_found")}</CommandEmpty>
+              <CommandGroup>
+                {selection.isLoading ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : (
+                  selection.available?.results.map((tag) => (
                     <CommandItem
                       key={tag.id}
+                      value={tag.id}
                       onSelect={() => selection.onToggle(tag.id)}
-                      className="px-2 py-1.5 text-sm"
                     >
-                      <Building className="h-4 w-4 shrink-0 mr-2" />
-                      <span className="truncate">{tag.name}</span>
+                      <div className="flex flex-1 items-center gap-2">
+                        <Building className="h-4 w-4" />
+                        <span>{tag.name}</span>
+                      </div>
+                      {selection.selectedIds.includes(tag.id) && (
+                        <Check className="h-4 w-4" />
+                      )}
                     </CommandItem>
                   ))
-              )}
-            </CommandGroup>
+                )}
+              </CommandGroup>
+            </CommandList>
           </Command>
         </PopoverContent>
       </Popover>
@@ -685,9 +699,10 @@ export default function QuestionnaireEditor({ id }: QuestionnaireEditorProps) {
     mutationFn: mutate(questionnaireApi.update, {
       pathParams: { id: id! },
     }),
-    onSuccess: () => {
+    onSuccess: (data: QuestionnaireDetail) => {
       toast.success("Questionnaire updated successfully");
       queryClient.invalidateQueries({ queryKey: ["questionnaireDetail", id] });
+      navigate(`/admin/questionnaire/${data.slug}`);
     },
     onError: (_error) => {
       toast.error("Failed to update questionnaire");
