@@ -138,12 +138,6 @@ const SearchByMultipleFields: React.FC<SearchByMultipleFieldsProps> = ({
   }, [open]);
 
   useEffect(() => {
-    if (autoFocus) {
-      inputRef.current?.focus();
-    }
-  }, [autoFocus, open, selectedOptionIndex]);
-
-  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
@@ -235,7 +229,11 @@ const SearchByMultipleFields: React.FC<SearchByMultipleFieldsProps> = ({
         );
     }
   }, [selectedOption, searchValue, t, inputClassName, open]);
-
+  useEffect(() => {
+    if (autoFocus) {
+      inputRef.current?.focus();
+    }
+  }, [autoFocus, open, selectedOptionIndex]);
   return (
     <div
       className={cn(
