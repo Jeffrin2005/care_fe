@@ -13,6 +13,8 @@ import {
 import { useTranslation } from "react-i18next";
 import useKeyboardShortcut from "use-keyboard-shortcut";
 
+import { cn } from "@/lib/utils";
+
 import CareIcon, { IconName } from "@/CAREUI/icons/CareIcon";
 
 import { Button } from "@/components/ui/button";
@@ -300,7 +302,10 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
                 </Button>
               )}
               <div
-                className="flex h-[75vh] w-full items-center justify-center overflow-hidden rounded-lg border border-secondary-200"
+                className={cn(
+                  "flex h-[75vh] w-full items-center justify-center overflow-hidden rounded-lg border border-secondary-200 touch-none",
+                  isDragging ? "cursor-grabbing" : "cursor-grab",
+                )}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
@@ -308,24 +313,25 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
-                style={{
-                  cursor: isDragging ? "grabbing" : "grab",
-                  touchAction: "none",
-                }}
               >
                 {file_state.isImage ? (
                   <div
+                    className={cn(
+                      "transition-transform duration-100 relative",
+                      isDragging ? "duration-0" : "",
+                    )}
                     style={{
                       transform: `translate(${position.x}px, ${position.y}px)`,
-                      transition: isDragging ? "none" : "transform 0.1s",
                     }}
                   >
                     <img
                       src={fileUrl}
                       alt="file"
-                      className={`h-full w-full select-none object-contain ${
-                        zoom_values[file_state.zoom - 1]
-                      } ${getRotationClass(file_state.rotation)}`}
+                      className={cn(
+                        "h-full w-full select-none object-contain",
+                        zoom_values[file_state.zoom - 1],
+                        getRotationClass(file_state.rotation),
+                      )}
                       draggable={false}
                     />
                   </div>
