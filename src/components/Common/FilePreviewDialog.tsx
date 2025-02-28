@@ -1,9 +1,6 @@
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@radix-ui/react-tooltip";
+import { TooltipContent, TooltipTrigger } from "@radix-ui/react-tooltip";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { Tooltip } from "@radix-ui/react-tooltip";
 import {
   Dispatch,
   ReactNode,
@@ -138,7 +135,6 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     });
     setScale((prevScale) => Math.min(prevScale + 0.25, 2));
   };
-
   const handleZoomOut = () => {
     const checkFull = file_state.zoom === 1;
     setFileState({
@@ -147,9 +143,8 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     });
     setScale((prevScale) => Math.max(prevScale - 0.25, 0.5));
   };
-
   const handleRotate = (angle: number) => {
-    setFileState((prev) => {
+    setFileState((prev: any) => {
       const newRotation = (prev.rotation + angle + 360) % 360;
       return {
         ...prev,
@@ -158,7 +153,7 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     });
   };
 
-  const getRotationClass = (rotation: number) => {
+  function getRotationClass(rotation: number) {
     const normalizedRotation = rotation % 360;
     switch (normalizedRotation) {
       case 90:
@@ -170,14 +165,14 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
       default:
         return "";
     }
-  };
+  }
 
   const fileName = file_state?.name
-    ? `${file_state.name}.${file_state.extension}`
+    ? file_state.name + "." + file_state.extension
     : "";
 
   const fileNameTooltip =
-    fileName.length > 30 ? `${fileName.slice(0, 30)}...` : fileName;
+    fileName.length > 30 ? fileName.slice(0, 30) + "..." : fileName;
 
   const handleNext = (newIndex: number) => {
     if (
@@ -203,13 +198,12 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     onClose?.();
   };
 
-  useKeyboardShortcut(["ArrowLeft"], () => {
-    if (index > 0) handleNext(index - 1);
-  });
+  useKeyboardShortcut(["ArrowLeft"], () => index > 0 && handleNext(index - 1));
 
-  useKeyboardShortcut(["ArrowRight"], () => {
-    if (index < (uploadedFiles?.length || 0) - 1) handleNext(index + 1);
-  });
+  useKeyboardShortcut(
+    ["ArrowRight"],
+    () => index < (uploadedFiles?.length || 0) - 1 && handleNext(index + 1),
+  );
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!file_state.isImage) return;
@@ -259,8 +253,8 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     setDragState((prev) => ({
       ...prev,
       position: {
-        x: e.touches[0].clientX - prev.dragStart.x,
-        y: e.touches[0].clientY - prev.dragStart.y,
+        x: e.touches[0].clientX - dragState.dragStart.x,
+        y: e.touches[0].clientY - dragState.dragStart.y,
       },
     }));
   };
@@ -454,10 +448,10 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
                         () => handleRotate(90),
                         false,
                       ],
-                    ].map((button, idx) => (
+                    ].map((button, index) => (
                       <Button
                         variant="ghost"
-                        key={idx}
+                        key={index}
                         onClick={button[2] as () => void}
                         className="z-50 rounded bg-white/60 px-4 py-2 text-black backdrop-blur transition hover:bg-white/70"
                         disabled={button[3] as boolean}
@@ -497,10 +491,10 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
                         () => setPage((prev) => prev + 1),
                         page === numPages,
                       ],
-                    ].map((button, idx) => (
+                    ].map((button, index) => (
                       <Button
                         variant="ghost"
-                        key={idx}
+                        key={index}
                         onClick={button[2] as () => void}
                         className="z-50 rounded bg-white/60 px-4 py-2 text-black backdrop-blur transition hover:bg-white/70"
                         disabled={button[3] as boolean}
@@ -528,5 +522,4 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     </Dialog>
   );
 };
-
 export default FilePreviewDialog;
