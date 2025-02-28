@@ -1,6 +1,9 @@
-import { TooltipContent, TooltipTrigger } from "@radix-ui/react-tooltip";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { Tooltip } from "@radix-ui/react-tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@radix-ui/react-tooltip";
 import {
   Dispatch,
   ReactNode,
@@ -29,6 +32,7 @@ import CircularProgress from "@/components/Common/CircularProgress";
 import { FileUploadModel } from "@/components/Patient/models";
 
 const PDFViewer = lazy(() => import("@/components/Common/PDFViewer"));
+
 export const zoom_values = [
   "scale-25",
   "scale-50",
@@ -39,6 +43,7 @@ export const zoom_values = [
   "scale-175",
   "scale-200",
 ];
+
 export interface StateInterface {
   open: boolean;
   isImage: boolean;
@@ -51,6 +56,7 @@ export interface StateInterface {
   id?: string;
   associating_id?: string;
 }
+
 type FilePreviewProps = {
   title?: ReactNode;
   description?: ReactNode;
@@ -67,6 +73,7 @@ type FilePreviewProps = {
   loadFile?: (file: FileUploadModel, associating_id: string) => void;
   currentIndex: number;
 };
+
 const previewExtensions = [
   ".html",
   ".htm",
@@ -79,6 +86,13 @@ const previewExtensions = [
   ".gif",
   ".webp",
 ];
+
+interface DragState {
+  isDragging: boolean;
+  position: { x: number; y: number };
+  dragStart: { x: number; y: number };
+}
+
 const FilePreviewDialog = (props: FilePreviewProps) => {
   const {
     show,
@@ -91,14 +105,17 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     loadFile,
     currentIndex,
   } = props;
+
   const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [numPages, setNumPages] = useState(1);
   const [index, setIndex] = useState<number>(currentIndex);
   const [scale, setScale] = useState(1.0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [dragState, setDragState] = useState<DragState>({
+    isDragging: false,
+    position: { x: 0, y: 0 },
+    dragStart: { x: 0, y: 0 },
+  });
 
   useEffect(() => {
     if (uploadedFiles && show) {
@@ -107,7 +124,10 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
   }, [uploadedFiles, show, currentIndex]);
 
   useEffect(() => {
-    setPosition({ x: 0, y: 0 });
+    setDragState((prev) => ({
+      ...prev,
+      position: { x: 0, y: 0 },
+    }));
   }, [index, show]);
 
   const handleZoomIn = () => {
@@ -118,6 +138,7 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     });
     setScale((prevScale) => Math.min(prevScale + 0.25, 2));
   };
+
   const handleZoomOut = () => {
     const checkFull = file_state.zoom === 1;
     setFileState({
@@ -126,8 +147,9 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     });
     setScale((prevScale) => Math.max(prevScale - 0.25, 0.5));
   };
+
   const handleRotate = (angle: number) => {
-    setFileState((prev: any) => {
+    setFileState((prev) => {
       const newRotation = (prev.rotation + angle + 360) % 360;
       return {
         ...prev,
@@ -136,7 +158,7 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     });
   };
 
-  function getRotationClass(rotation: number) {
+  const getRotationClass = (rotation: number) => {
     const normalizedRotation = rotation % 360;
     switch (normalizedRotation) {
       case 90:
@@ -148,14 +170,14 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
       default:
         return "";
     }
-  }
+  };
 
   const fileName = file_state?.name
-    ? file_state.name + "." + file_state.extension
+    ? `${file_state.name}.${file_state.extension}`
     : "";
 
   const fileNameTooltip =
-    fileName.length > 30 ? fileName.slice(0, 30) + "..." : fileName;
+    fileName.length > 30 ? `${fileName.slice(0, 30)}...` : fileName;
 
   const handleNext = (newIndex: number) => {
     if (
@@ -181,54 +203,73 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     onClose?.();
   };
 
-  useKeyboardShortcut(["ArrowLeft"], () => index > 0 && handleNext(index - 1));
+  useKeyboardShortcut(["ArrowLeft"], () => {
+    if (index > 0) handleNext(index - 1);
+  });
 
-  useKeyboardShortcut(
-    ["ArrowRight"],
-    () => index < (uploadedFiles?.length || 0) - 1 && handleNext(index + 1),
-  );
+  useKeyboardShortcut(["ArrowRight"], () => {
+    if (index < (uploadedFiles?.length || 0) - 1) handleNext(index + 1);
+  });
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!file_state.isImage) return;
-    setIsDragging(true);
-    setDragStart({
-      x: e.clientX - position.x,
-      y: e.clientY - position.y,
-    });
+    setDragState((prev) => ({
+      ...prev,
+      isDragging: true,
+      dragStart: {
+        x: e.clientX - prev.position.x,
+        y: e.clientY - prev.position.y,
+      },
+    }));
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    setPosition({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y,
-    });
+    if (!dragState.isDragging) return;
+    setDragState((prev) => ({
+      ...prev,
+      position: {
+        x: e.clientX - prev.dragStart.x,
+        y: e.clientY - prev.dragStart.y,
+      },
+    }));
   };
 
   const handleMouseUp = () => {
-    setIsDragging(false);
+    setDragState((prev) => ({
+      ...prev,
+      isDragging: false,
+    }));
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!file_state.isImage) return;
-    setIsDragging(true);
-    setDragStart({
-      x: e.touches[0].clientX - position.x,
-      y: e.touches[0].clientY - position.y,
-    });
+    setDragState((prev) => ({
+      ...prev,
+      isDragging: true,
+      dragStart: {
+        x: e.touches[0].clientX - prev.position.x,
+        y: e.touches[0].clientY - prev.position.y,
+      },
+    }));
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
+    if (!dragState.isDragging) return;
     e.preventDefault();
-    setPosition({
-      x: e.touches[0].clientX - dragStart.x,
-      y: e.touches[0].clientY - dragStart.y,
-    });
+    setDragState((prev) => ({
+      ...prev,
+      position: {
+        x: e.touches[0].clientX - prev.dragStart.x,
+        y: e.touches[0].clientY - prev.dragStart.y,
+      },
+    }));
   };
 
   const handleTouchEnd = () => {
-    setIsDragging(false);
+    setDragState((prev) => ({
+      ...prev,
+      isDragging: false,
+    }));
   };
 
   return (
@@ -304,7 +345,7 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
               <div
                 className={cn(
                   "flex h-[75vh] w-full items-center justify-center overflow-hidden rounded-lg border border-secondary-200 touch-none",
-                  isDragging ? "cursor-grabbing" : "cursor-grab",
+                  dragState.isDragging ? "cursor-grabbing" : "cursor-grab",
                 )}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
@@ -318,10 +359,10 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
                   <div
                     className={cn(
                       "transition-transform duration-100 relative",
-                      isDragging ? "duration-0" : "",
+                      dragState.isDragging ? "duration-0" : "",
                     )}
                     style={{
-                      transform: `translate(${position.x}px, ${position.y}px)`,
+                      transform: `translate(${dragState.position.x}px, ${dragState.position.y}px)`,
                     }}
                   >
                     <img
@@ -413,10 +454,10 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
                         () => handleRotate(90),
                         false,
                       ],
-                    ].map((button, index) => (
+                    ].map((button, idx) => (
                       <Button
                         variant="ghost"
-                        key={index}
+                        key={idx}
                         onClick={button[2] as () => void}
                         className="z-50 rounded bg-white/60 px-4 py-2 text-black backdrop-blur transition hover:bg-white/70"
                         disabled={button[3] as boolean}
@@ -456,10 +497,10 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
                         () => setPage((prev) => prev + 1),
                         page === numPages,
                       ],
-                    ].map((button, index) => (
+                    ].map((button, idx) => (
                       <Button
                         variant="ghost"
-                        key={index}
+                        key={idx}
                         onClick={button[2] as () => void}
                         className="z-50 rounded bg-white/60 px-4 py-2 text-black backdrop-blur transition hover:bg-white/70"
                         disabled={button[3] as boolean}
@@ -487,4 +528,5 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     </Dialog>
   );
 };
+
 export default FilePreviewDialog;
