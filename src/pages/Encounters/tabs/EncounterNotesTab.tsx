@@ -317,6 +317,38 @@ const MobileNav = ({
   </div>
 );
 
+const AutoExpandingTextarea = ({
+  value,
+  onChange,
+  onKeyDown,
+  placeholder,
+}: {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  placeholder: string;
+}) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [value]);
+
+  return (
+    <Textarea
+      ref={textareaRef}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      onKeyDown={onKeyDown}
+      className="min-h-[40px] max-h-[200px] resize-none"
+    />
+  );
+};
+
 // Main component
 export const EncounterNotesTab = ({ encounter }: EncounterTabProps) => {
   const { t } = useTranslation();
@@ -665,7 +697,7 @@ export const EncounterNotesTab = ({ encounter }: EncounterTabProps) => {
                   <div className="border-t p-4 sticky bottom-0">
                     <form onSubmit={handleSendMessage}>
                       <div className="flex gap-2">
-                        <Textarea
+                        <AutoExpandingTextarea
                           placeholder={t("encounter_notes__type_message")}
                           value={newMessage}
                           onChange={(e) => setNewMessage(e.target.value)}
