@@ -349,7 +349,8 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
               >
-
+                )}
+                {file_state.isImage ? (
                 {file_state.isImage ? (
                   <div
                     className={cn(
