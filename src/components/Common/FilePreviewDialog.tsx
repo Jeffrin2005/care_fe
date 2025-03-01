@@ -29,7 +29,6 @@ import CircularProgress from "@/components/Common/CircularProgress";
 import { FileUploadModel } from "@/components/Patient/models";
 
 const PDFViewer = lazy(() => import("@/components/Common/PDFViewer"));
-
 export const zoom_values = [
   "scale-25",
   "scale-50",
@@ -40,7 +39,6 @@ export const zoom_values = [
   "scale-175",
   "scale-200",
 ];
-
 export interface StateInterface {
   open: boolean;
   isImage: boolean;
@@ -53,7 +51,6 @@ export interface StateInterface {
   id?: string;
   associating_id?: string;
 }
-
 type FilePreviewProps = {
   title?: ReactNode;
   description?: ReactNode;
@@ -70,7 +67,6 @@ type FilePreviewProps = {
   loadFile?: (file: FileUploadModel, associating_id: string) => void;
   currentIndex: number;
 };
-
 const previewExtensions = [
   ".html",
   ".htm",
@@ -102,8 +98,8 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     loadFile,
     currentIndex,
   } = props;
-
   const { t } = useTranslation();
+
   const [page, setPage] = useState(1);
   const [numPages, setNumPages] = useState(1);
   const [index, setIndex] = useState<number>(currentIndex);
@@ -135,6 +131,7 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     });
     setScale((prevScale) => Math.min(prevScale + 0.25, 2));
   };
+
   const handleZoomOut = () => {
     const checkFull = file_state.zoom === 1;
     setFileState({
@@ -185,6 +182,7 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     }
     const nextFile = uploadedFiles[newIndex];
     if (!nextFile?.id) return;
+
     const associating_id = nextFile.associating_id || "";
     loadFile(nextFile, associating_id);
     setIndex(newIndex);
@@ -274,6 +272,7 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
             {t("file_preview")}
           </DialogTitle>
         </DialogHeader>
+
         {fileUrl ? (
           <>
             <div className="mb-2 flex flex-col items-start justify-between md:flex-row">
@@ -349,8 +348,6 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
               >
-                )}
-                {file_state.isImage ? (
                 {file_state.isImage ? (
                   <div
                     className={cn(
@@ -401,6 +398,7 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
                   </div>
                 )}
               </div>
+
               {uploadedFiles && uploadedFiles.length > 1 && (
                 <Button
                   variant="primary"
@@ -530,4 +528,5 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     </Dialog>
   );
 };
+
 export default FilePreviewDialog;
