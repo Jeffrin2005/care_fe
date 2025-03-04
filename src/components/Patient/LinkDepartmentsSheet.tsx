@@ -120,7 +120,7 @@ function DeleteOrganizationButton({
         false,
       );
       queryClient.invalidateQueries({ queryKey });
-      toast.success("Organization removed successfully");
+      toast.success(t("organization_removed_successfully"));
       onSuccess?.();
     },
     onError: (error) => {
@@ -175,7 +175,7 @@ export default function LinkDepartmentsSheet({
     onSuccess: () => {
       const invalidateQueries = getInvalidateQueries(entityType, entityId);
       queryClient.invalidateQueries({ queryKey: invalidateQueries });
-      toast.success("Organization added successfully");
+      toast.success(t("organization_removed_successfully"));
       setSelectedOrg("");
       setOpen(false);
       onUpdate?.();
