@@ -95,6 +95,7 @@ export default function LinkDepartmentsSheet({
   const [open, setOpen] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState<string>("");
   const queryClient = useQueryClient();
+  const [removingOrgId, setRemovingOrgId] = useState<string | null>(null);
 
   const { mutate: addOrganization, isPending: isAdding } = useMutation({
     mutationFn: (organizationId: string) => {
@@ -125,8 +126,9 @@ export default function LinkDepartmentsSheet({
     },
   });
 
-  const { mutate: removeOrganization, isPending: isRemoving } = useMutation({
+  const { mutate: removeOrganization } = useMutation({
     mutationFn: (organizationId: string) => {
+      setRemovingOrgId(organizationId);
       const { route, pathParams } = getMutationParams(
         entityType,
         entityId,
@@ -147,9 +149,11 @@ export default function LinkDepartmentsSheet({
       );
       queryClient.invalidateQueries({ queryKey });
       toast.success("Organization removed successfully");
+      setRemovingOrgId(null);
       onUpdate?.();
     },
     onError: (error) => {
+      setRemovingOrgId(null);
       const errorData = error.cause as { errors: { msg: string }[] };
       errorData.errors.forEach((er) => {
         toast.error(er.msg);
@@ -219,9 +223,9 @@ export default function LinkDepartmentsSheet({
                       variant="ghost"
                       size="icon"
                       onClick={() => removeOrganization(org.id)}
-                      disabled={isRemoving}
+                      disabled={removingOrgId === org.id}
                     >
-                      {isRemoving ? (
+                      {removingOrgId === org.id ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         <Trash2 className="h-4 w-4 text-destructive" />
