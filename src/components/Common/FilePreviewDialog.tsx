@@ -29,6 +29,7 @@ import CircularProgress from "@/components/Common/CircularProgress";
 import { FileUploadModel } from "@/components/Patient/models";
 
 const PDFViewer = lazy(() => import("@/components/Common/PDFViewer"));
+
 export const zoom_values = [
   "scale-25",
   "scale-50",
@@ -39,6 +40,7 @@ export const zoom_values = [
   "scale-175",
   "scale-200",
 ];
+
 export interface StateInterface {
   open: boolean;
   isImage: boolean;
@@ -51,6 +53,7 @@ export interface StateInterface {
   id?: string;
   associating_id?: string;
 }
+
 type FilePreviewProps = {
   title?: ReactNode;
   description?: ReactNode;
@@ -67,6 +70,7 @@ type FilePreviewProps = {
   loadFile?: (file: FileUploadModel, associating_id: string) => void;
   currentIndex: number;
 };
+
 const previewExtensions = [
   ".html",
   ".htm",
@@ -99,7 +103,6 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     currentIndex,
   } = props;
   const { t } = useTranslation();
-
   const [page, setPage] = useState(1);
   const [numPages, setNumPages] = useState(1);
   const [index, setIndex] = useState<number>(currentIndex);
@@ -140,6 +143,7 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     });
     setScale((prevScale) => Math.max(prevScale - 0.25, 0.5));
   };
+
   const handleRotate = (angle: number) => {
     setFileState((prev: any) => {
       const newRotation = (prev.rotation + angle + 360) % 360;
@@ -167,7 +171,6 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
   const fileName = file_state?.name
     ? file_state.name + "." + file_state.extension
     : "";
-
   const fileNameTooltip =
     fileName.length > 30 ? fileName.slice(0, 30) + "..." : fileName;
 
@@ -197,7 +200,6 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
   };
 
   useKeyboardShortcut(["ArrowLeft"], () => index > 0 && handleNext(index - 1));
-
   useKeyboardShortcut(
     ["ArrowRight"],
     () => index < (uploadedFiles?.length || 0) - 1 && handleNext(index + 1),
@@ -353,10 +355,9 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
                     className={cn(
                       "transition-transform duration-100 relative",
                       dragState.isDragging ? "duration-0" : "",
+                      `translate-x-[${dragState.position.x}px]`,
+                      `translate-y-[${dragState.position.y}px]`,
                     )}
-                    style={{
-                      transform: `translate(${dragState.position.x}px, ${dragState.position.y}px)`,
-                    }}
                   >
                     <img
                       src={fileUrl}
