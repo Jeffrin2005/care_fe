@@ -317,17 +317,21 @@ const MobileNav = ({
   </div>
 );
 
+interface AutoExpandingTextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  placeholder: string;
+}
+
 const AutoExpandingTextarea = ({
   value,
   onChange,
   onKeyDown,
   placeholder,
-}: {
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
-  placeholder: string;
-}) => {
+  ...props
+}: AutoExpandingTextareaProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -345,6 +349,7 @@ const AutoExpandingTextarea = ({
       onChange={onChange}
       onKeyDown={onKeyDown}
       className="min-h-[40px] max-h-[200px] resize-none"
+      {...props}
     />
   );
 };
