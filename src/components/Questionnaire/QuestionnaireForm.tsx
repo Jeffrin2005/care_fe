@@ -332,18 +332,18 @@ export function QuestionnaireForm({
     setActiveQuestionnaireId(questionnaireId);
     setActiveGroupId(groupId);
 
+    let element: Element | null;
+
     if (groupId) {
-      const element = document.querySelector(`[data-group-id="${groupId}"]`);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+      element = document.querySelector(`[data-group-id="${groupId}"]`);
     } else {
-      const element = document.querySelector(
+      element = document.querySelector(
         `[data-questionnaire-id="${questionnaireId}"]`,
       );
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+    }
+
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
