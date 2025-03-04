@@ -40,7 +40,6 @@ export const zoom_values = [
   "scale-175",
   "scale-200",
 ];
-
 export interface StateInterface {
   open: boolean;
   isImage: boolean;
@@ -53,7 +52,6 @@ export interface StateInterface {
   id?: string;
   associating_id?: string;
 }
-
 type FilePreviewProps = {
   title?: ReactNode;
   description?: ReactNode;
@@ -70,7 +68,6 @@ type FilePreviewProps = {
   loadFile?: (file: FileUploadModel, associating_id: string) => void;
   currentIndex: number;
 };
-
 const previewExtensions = [
   ".html",
   ".htm",
@@ -83,13 +80,11 @@ const previewExtensions = [
   ".gif",
   ".webp",
 ];
-
 interface DragState {
   isDragging: boolean;
   position: { x: number; y: number };
   dragStart: { x: number; y: number };
 }
-
 const FilePreviewDialog = (props: FilePreviewProps) => {
   const {
     show,
@@ -103,6 +98,7 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     currentIndex,
   } = props;
   const { t } = useTranslation();
+
   const [page, setPage] = useState(1);
   const [numPages, setNumPages] = useState(1);
   const [index, setIndex] = useState<number>(currentIndex);
@@ -112,20 +108,17 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     position: { x: 0, y: 0 },
     dragStart: { x: 0, y: 0 },
   });
-
   useEffect(() => {
     if (uploadedFiles && show) {
       setIndex(currentIndex);
     }
   }, [uploadedFiles, show, currentIndex]);
-
   useEffect(() => {
     setDragState((prev) => ({
       ...prev,
       position: { x: 0, y: 0 },
     }));
   }, [index, show]);
-
   const handleZoomIn = () => {
     const checkFull = file_state.zoom === zoom_values.length;
     setFileState({
@@ -143,7 +136,6 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     });
     setScale((prevScale) => Math.max(prevScale - 0.25, 0.5));
   };
-
   const handleRotate = (angle: number) => {
     setFileState((prev: any) => {
       const newRotation = (prev.rotation + angle + 360) % 360;
@@ -153,7 +145,6 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
       };
     });
   };
-
   function getRotationClass(rotation: number) {
     const normalizedRotation = rotation % 360;
     switch (normalizedRotation) {
@@ -167,13 +158,11 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
         return "";
     }
   }
-
   const fileName = file_state?.name
     ? file_state.name + "." + file_state.extension
     : "";
   const fileNameTooltip =
     fileName.length > 30 ? fileName.slice(0, 30) + "..." : fileName;
-
   const handleNext = (newIndex: number) => {
     if (
       !uploadedFiles?.length ||
@@ -190,7 +179,6 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     loadFile(nextFile, associating_id);
     setIndex(newIndex);
   };
-
   const handleClose = () => {
     setPage(1);
     setNumPages(1);
@@ -198,13 +186,11 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
     setScale(1);
     onClose?.();
   };
-
   useKeyboardShortcut(["ArrowLeft"], () => index > 0 && handleNext(index - 1));
   useKeyboardShortcut(
     ["ArrowRight"],
     () => index < (uploadedFiles?.length || 0) - 1 && handleNext(index + 1),
   );
-
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!file_state.isImage) return;
     setDragState((prev) => ({
@@ -216,7 +202,6 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
       },
     }));
   };
-
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!dragState.isDragging) return;
     setDragState((prev) => ({
@@ -227,14 +212,12 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
       },
     }));
   };
-
   const handleMouseUp = () => {
     setDragState((prev) => ({
       ...prev,
       isDragging: false,
     }));
   };
-
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!file_state.isImage) return;
     setDragState((prev) => ({
@@ -246,7 +229,6 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
       },
     }));
   };
-
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!dragState.isDragging) return;
     e.preventDefault();
@@ -258,14 +240,12 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
       },
     }));
   };
-
   const handleTouchEnd = () => {
     setDragState((prev) => ({
       ...prev,
       isDragging: false,
     }));
   };
-
   return (
     <Dialog open={show} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="h-full w-full max-w-5xl flex-col gap-4 bg-white rounded-lg p-4 shadow-xl md:p-6">
@@ -355,9 +335,10 @@ const FilePreviewDialog = (props: FilePreviewProps) => {
                     className={cn(
                       "transition-transform duration-100 relative",
                       dragState.isDragging ? "duration-0" : "",
-                      `translate-x-[${dragState.position.x}px]`,
-                      `translate-y-[${dragState.position.y}px]`,
                     )}
+                    style={{
+                      transform: `translate(${dragState.position.x}px, ${dragState.position.y}px)`,
+                    }}
                   >
                     <img
                       src={fileUrl}
