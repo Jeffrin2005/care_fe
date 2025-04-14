@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusIcon, TrashIcon, UpdateIcon } from "@radix-ui/react-icons";
 import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -35,7 +36,6 @@ import {
   TERMINOLOGY_SYSTEMS,
   UpdateValuesetModel,
   ValuesetFormType,
-  ValuesetLookupResponse,
 } from "@/types/valueset/valueset";
 import valuesetApi from "@/types/valueset/valuesetApi";
 
@@ -47,6 +47,10 @@ interface ValueSetFormProps {
   initialData?: UpdateValuesetModel;
   onSubmit: (data: ValuesetFormType) => void;
   isSubmitting?: boolean;
+}
+
+interface LoadingState {
+  [key: string]: boolean;
 }
 
 function ConceptFields({
@@ -63,11 +67,30 @@ function ConceptFields({
     name: `compose.${type}.${nestIndex}.concept`,
   });
 
+  // Track loading state for each concept separately
+  const [loadingStates, setLoadingStates] = useState<LoadingState>({});
+
   const lookupMutation = useMutation({
-    mutationFn: mutate(valuesetApi.lookup, {
-      silent: true, // Suppress default error handling since we have custom handling
-    }),
-    onSuccess: (response: ValuesetLookupResponse) => {
+    mutationFn: async ({
+      system,
+      code,
+      conceptId,
+    }: {
+      system: string;
+      code: string;
+      conceptId: string;
+    }) => {
+      setLoadingStates((prev) => ({ ...prev, [conceptId]: true }));
+      try {
+        const response = await mutate(valuesetApi.lookup, {
+          silent: true,
+        })({ system, code });
+        return { response, conceptId };
+      } finally {
+        setLoadingStates((prev) => ({ ...prev, [conceptId]: false }));
+      }
+    },
+    onSuccess: ({ response }) => {
       if (response.metadata) {
         const concepts = parentForm.getValues(
           `compose.${type}.${nestIndex}.concept`,
@@ -92,7 +115,7 @@ function ConceptFields({
     },
   });
 
-  const handleVerify = async (index: number) => {
+  const handleVerify = async (index: number, conceptId: string) => {
     const system = parentForm.getValues(`compose.${type}.${nestIndex}.system`);
     const code = parentForm.getValues(
       `compose.${type}.${nestIndex}.concept.${index}.code`,
@@ -103,7 +126,7 @@ function ConceptFields({
       return;
     }
 
-    lookupMutation.mutate({ system, code });
+    lookupMutation.mutate({ system, code, conceptId });
   };
 
   return (
@@ -165,10 +188,16 @@ function ConceptFields({
             type="button"
             variant="outline"
             size="icon"
-            onClick={() => handleVerify(index)}
-            disabled={lookupMutation.isPending}
+            onClick={() => handleVerify(index, field.id)}
+            disabled={loadingStates[field.id]}
           >
-            <UpdateIcon className="size-4" />
+            <div>
+              {loadingStates[field.id] ? (
+                <UpdateIcon className="size-4 animate-spin" />
+              ) : (
+                <UpdateIcon className="size-4" />
+              )}
+            </div>
           </Button>
           <Button
             type="button"
